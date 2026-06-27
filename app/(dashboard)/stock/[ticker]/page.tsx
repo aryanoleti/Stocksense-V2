@@ -12,12 +12,13 @@ import { TradePanel } from "@/components/portfolio/trade-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
-  params: { ticker: string };
+  params: Promise<{ ticker: string }>;
 }
 
 export async function generateMetadata({ params }: Props) {
   try {
-    const quote = await getQuote(params.ticker);
+    const { ticker } = await params;
+    const quote = await getQuote(ticker);
     return {
       title: `${quote.name} (${quote.ticker.replace(".NS", "")}) — StockSense`,
       description: `Live stock price, chart, and AI analysis for ${quote.name}`,
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function StockPage({ params }: Props) {
-  const { ticker } = params;
+  const { ticker } = await params;
   const session = await auth();
 
   try {

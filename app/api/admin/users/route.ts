@@ -2,8 +2,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-function requireAdmin(session: Awaited<ReturnType<typeof auth>>) {
-  if (!session || (session.user as any).role !== "ADMIN") return false;
+function requireAdmin(session: any) {
+  if (!session?.user || session.user.role !== "ADMIN") return false;
   return true;
 }
 

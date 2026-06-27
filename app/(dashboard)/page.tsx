@@ -20,7 +20,7 @@ export default async function HomePage() {
     getTopMovers(),
     getMarketNews(),
     prisma.portfolio.findUnique({
-      where: { userId: session!.user.id },
+      where: { userId: session?.user?.id ?? "" },
       include: { holdings: true },
     }),
   ]);
@@ -31,7 +31,7 @@ export default async function HomePage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">
           Good {getGreeting()},{" "}
-          <span className="text-primary">{session?.user.name?.split(" ")[0]}</span> 👋
+          <span className="text-primary">{session?.user?.name?.split(" ")[0]}</span> 👋
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
           Here's what's happening in the markets today

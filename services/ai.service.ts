@@ -1,7 +1,7 @@
 // services/ai.service.ts
 import Groq from "groq-sdk";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const getGroq = () => new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
 
 const SYSTEM_PROMPT = `You are StockSense AI, an expert financial assistant specializing in Indian and global stock markets. You help users understand:
 
@@ -25,7 +25,7 @@ export async function createChatCompletion(
   messages: { role: "user" | "assistant"; content: string }[],
   stream: boolean = true
 ) {
-  return groq.chat.completions.create({
+  return getGroq().chat.completions.create({
     model: "llama-3.1-70b-versatile",
     messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
     max_tokens: 1024,
@@ -52,7 +52,7 @@ export async function generateStockInsight(stockData: {
 
 Be factual and brief. Mention if it's trading near 52W high/low. Don't give direct buy/sell advice.`;
 
-  const response = await groq.chat.completions.create({
+  const response = await getGroq().chat.completions.create({
     model: "llama-3.1-8b-instant",
     messages: [{ role: "user", content: prompt }],
     max_tokens: 150,

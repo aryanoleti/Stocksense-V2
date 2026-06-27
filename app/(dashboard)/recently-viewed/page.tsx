@@ -9,7 +9,7 @@ export default async function RecentlyViewedPage() {
   const session = await auth();
 
   const recentItems = await prisma.recentlyViewed.findMany({
-    where: { userId: session!.user.id },
+    where: { userId: session?.user?.id ?? "" },
     orderBy: { viewedAt: "desc" },
     take: 20,
   });
@@ -21,9 +21,8 @@ export default async function RecentlyViewedPage() {
   const stocks = recentItems.map((item, i) => {
     const q = quotesSettled[i];
     return {
-      ticker: item.ticker,
       viewedAt: item.viewedAt,
-      ...(q.status === "fulfilled" ? q.value : { name: item.ticker, price: 0, changePercent: 0, change: 0 }),
+      ...(q.status === "fulfilled" ? q.value : { ticker: item.ticker, name: item.ticker, price: 0, changePercent: 0, change: 0 }),
     };
   });
 

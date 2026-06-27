@@ -9,12 +9,12 @@ export default async function PortfolioPage() {
   const session = await auth();
 
   const portfolio = await prisma.portfolio.findUnique({
-    where: { userId: session!.user.id },
+    where: { userId: session?.user?.id ?? "" },
     include: { holdings: true },
   });
 
   const transactions = await prisma.transaction.findMany({
-    where: { userId: session!.user.id },
+    where: { userId: session?.user?.id ?? "" },
     orderBy: { createdAt: "desc" },
     take: 50,
   });

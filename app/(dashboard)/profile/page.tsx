@@ -8,7 +8,7 @@ export default async function ProfilePage() {
   const session = await auth();
 
   const user = await prisma.user.findUnique({
-    where: { id: session!.user.id },
+    where: { id: session?.user?.id ?? "" },
     select: {
       id: true, name: true, email: true, image: true, role: true,
       createdAt: true, emailVerified: true,
@@ -17,7 +17,7 @@ export default async function ProfilePage() {
   });
 
   const portfolio = await prisma.portfolio.findUnique({
-    where: { userId: session!.user.id },
+    where: { userId: session?.user?.id ?? "" },
     include: { holdings: true },
   });
 

@@ -8,7 +8,7 @@ export default async function SettingsPage() {
   const session = await auth();
 
   const prefs = await prisma.userPreferences.findUnique({
-    where: { userId: session!.user.id },
+    where: { userId: session?.user?.id ?? "" },
   });
 
   return (

@@ -7,8 +7,10 @@ export const metadata = { title: "Ask AI" };
 export default async function AskAIPage() {
   const session = await auth();
 
+  const userId = session?.user?.id ?? "";
+
   const sessions = await prisma.chatSession.findMany({
-    where: { userId: session!.user.id },
+    where: { userId },
     orderBy: { updatedAt: "desc" },
     take: 20,
     include: {
@@ -16,5 +18,12 @@ export default async function AskAIPage() {
     },
   });
 
-  return <ChatInterface initialSessions={sessions} userId={session!.user.id} />;
+  const serialized = sessions.map((s) => ({
+    ...s,
+    updatedAt: s.updatedAt.toISOString(),
+    createdAt: s.createdAt.toISOString(),
+    messages: s.messages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString(), role: m.role as "user" | "assistant" })),
+  }));
+
+  return <ChatInterface initialSessions={serialized} userId={userId} />;
 }
