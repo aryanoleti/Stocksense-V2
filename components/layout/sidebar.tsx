@@ -6,16 +6,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, TrendingUp, BarChart2, Clock, Briefcase,
   BookOpen, Newspaper, Bot, ShoppingCart, ChevronLeft, ChevronRight,
-  Zap, Shield
+  Zap, Shield, GitCompareArrows
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { User } from "next-auth";
 
 const navItems = [
-  { href: "/", icon: LayoutDashboard, label: "Home" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
   { href: "/market", icon: TrendingUp, label: "Market" },
   { href: "/stocks", icon: BarChart2, label: "Stocks" },
+  { href: "/compare", icon: GitCompareArrows, label: "Compare" },
   { href: "/recently-viewed", icon: Clock, label: "Recently Viewed" },
   { href: "/portfolio", icon: Briefcase, label: "Portfolio" },
   { href: "/glossary", icon: BookOpen, label: "Glossary" },
@@ -65,7 +66,7 @@ export function Sidebar({ user }: SidebarProps) {
       {/* Nav */}
       <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
-          const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+          const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}

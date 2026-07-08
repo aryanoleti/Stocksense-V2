@@ -29,6 +29,7 @@ model User {
   bookmarks       GlossaryBookmark[]
   preferences     UserPreferences?
   verifyTokens    VerificationToken[]
+  realHoldings    RealHolding[]
 }
 
 model Account {
@@ -105,6 +106,25 @@ model Holding {
   portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
 
   @@unique([portfolioId, ticker])
+}
+
+// Manual real-holdings tracker — separate from the virtual Portfolio/Holding
+// simulator above. Represents actual stocks a user really owns, entered by
+// hand, with real purchase price/date. Supports multiple lots per ticker.
+model RealHolding {
+  id          String   @id @default(cuid())
+  userId      String
+  ticker      String
+  companyName String
+  quantity    Float
+  avgPrice    Float
+  buyDate     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, ticker, buyDate])
 }
 
 model Transaction {

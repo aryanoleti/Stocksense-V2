@@ -14,6 +14,9 @@ const SUGGESTED_PROMPTS = [
   "What are the best sectors to invest in 2025?",
   "Difference between LTCG and STCG in India",
   "How does the repo rate affect stock markets?",
+  "Compare two stocks for long-term investing",
+  "Give me an AI review of a stock I'm watching",
+  "What should a beginner check before buying their first stock?",
 ];
 
 interface Message {

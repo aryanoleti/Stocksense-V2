@@ -121,3 +121,235 @@
     to { opacity: 1; transform: translateY(0); }
   }
 }
+
+/* ===========================================================================
+   StockSense marketing landing page (ported from SOURCE stocksense app).
+   SOURCE uses Tailwind v4 with a light emerald theme defined via `@theme
+   inline` in :root. DESTINATION is Tailwind v3 with a dark navy dashboard
+   theme already occupying :root — so the landing page's design tokens are
+   scoped under `.stocksense-marketing` instead of touching :root, and every
+   component wraps its returned JSX in that class (see app/page.tsx).
+   =========================================================================== */
+
+.stocksense-marketing {
+  /* Surfaces */
+  --color-bg: #fbfcfb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f6f4;
+  --color-surface-3: #ebefec;
+  --color-border: #e3e8e4;
+  --color-border-strong: #d2d9d3;
+
+  /* Text */
+  --color-fg: #0d1f17;
+  --color-fg-muted: #4a5a51;
+  --color-fg-subtle: #7c8a82;
+
+  /* Brand — deep emerald / forest */
+  --color-brand-50: #ecf6f0;
+  --color-brand-100: #d2eadb;
+  --color-brand-200: #a6d4b8;
+  --color-brand-300: #6fb98e;
+  --color-brand-400: #3d9a6b;
+  --color-brand-500: #1f7a4f;
+  --color-brand-600: #115e3c;
+  --color-brand-700: #0c4a30;
+  --color-brand-800: #093a26;
+  --color-brand-900: #062a1c;
+  --color-brand-950: #041a11;
+
+  /* Semantic */
+  --color-up: #088a52;
+  --color-up-soft: #e6f4ec;
+  --color-down: #c4361c;
+  --color-down-soft: #fbece8;
+  --color-warn: #b27a00;
+  --color-info: #1d6fb8;
+
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Radii */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
+
+  /* Shadows — soft, premium */
+  --shadow-xs: 0 1px 2px rgba(13, 31, 23, 0.04);
+  --shadow-sm: 0 1px 3px rgba(13, 31, 23, 0.06), 0 1px 2px rgba(13, 31, 23, 0.04);
+  --shadow-md: 0 6px 16px -6px rgba(13, 31, 23, 0.08), 0 2px 4px rgba(13, 31, 23, 0.04);
+  --shadow-lg: 0 20px 40px -16px rgba(13, 31, 23, 0.12), 0 6px 16px -8px rgba(13, 31, 23, 0.06);
+  --shadow-xl: 0 32px 64px -24px rgba(13, 31, 23, 0.18);
+
+  font-family: var(--font-sans);
+  color: var(--color-fg);
+  background: var(--color-bg);
+}
+
+.stocksense-marketing .tabular { font-variant-numeric: tabular-nums; }
+
+.stocksense-marketing .text-balance { text-wrap: balance; }
+.stocksense-marketing .text-pretty { text-wrap: pretty; }
+
+.stocksense-marketing .surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.stocksense-marketing .surface-elevated {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.stocksense-marketing .gradient-brand {
+  background: linear-gradient(135deg, var(--color-brand-700) 0%, var(--color-brand-900) 100%);
+}
+
+.stocksense-marketing .gradient-brand-soft {
+  background:
+    radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--color-brand-600) 14%, transparent) 0%, transparent 60%),
+    radial-gradient(120% 80% at 100% 100%, color-mix(in srgb, var(--color-brand-400) 10%, transparent) 0%, transparent 50%),
+    linear-gradient(180deg, #062a1c 0%, #041a11 100%);
+}
+
+.stocksense-marketing .grid-mask {
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 75%);
+}
+
+.stocksense-marketing button,
+.stocksense-marketing a,
+.stocksense-marketing [role="button"],
+.stocksense-marketing input,
+.stocksense-marketing select,
+.stocksense-marketing textarea {
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+@keyframes ss-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.stocksense-marketing .animate-marquee {
+  animation: ss-marquee var(--marquee-duration, 56s) linear infinite;
+  will-change: transform;
+}
+.stocksense-marketing .marquee-hover:hover .animate-marquee { animation-play-state: paused; }
+
+/* Scroll reveals (IntersectionObserver toggles .reveal-shown) */
+.stocksense-marketing .reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.stocksense-marketing .reveal.reveal-shown { opacity: 1; transform: none; }
+
+@keyframes ss-word-rise {
+  from { transform: translateY(115%) rotate(2.5deg); }
+  to { transform: translateY(0) rotate(0deg); }
+}
+.stocksense-marketing .word-rise {
+  display: inline-block;
+  animation: ss-word-rise 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--word-delay, 0ms);
+}
+
+/* SVG sparkline draw-in */
+.stocksense-marketing .spark-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.22, 1, 0.36, 1) 0.25s;
+}
+.stocksense-marketing .reveal-shown .spark-line { stroke-dashoffset: 0; }
+.stocksense-marketing .spark-fill {
+  opacity: 0;
+  transition: opacity 0.9s ease 0.7s;
+}
+.stocksense-marketing .reveal-shown .spark-fill { opacity: 1; }
+
+/* Growing bars/widths (inline style provides the final size) */
+.stocksense-marketing .grow-transition {
+  transition:
+    height 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--grow-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stocksense-marketing .reveal { opacity: 1; transform: none; transition: none; }
+  .stocksense-marketing .word-rise { animation: none; }
+  .stocksense-marketing .spark-line { stroke-dashoffset: 0; transition: none; }
+  .stocksense-marketing .spark-fill { opacity: 1; transition: none; }
+}
+
+@keyframes ss-scroll-cue {
+  0%, 100% { transform: translateY(0); opacity: 0.9; }
+  50% { transform: translateY(7px); opacity: 0.4; }
+}
+.stocksense-marketing .animate-scroll-cue { animation: ss-scroll-cue 1.8s ease-in-out infinite; }
+
+.stocksense-marketing .noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Faint particle-dust texture (CTA banner, footer, canvas fallbacks) */
+.stocksense-marketing .particle-dust {
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.13) 1px, transparent 1.3px),
+    radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.4px);
+  background-size: 26px 26px, 42px 42px;
+  background-position: 0 0, 13px 21px;
+}
+
+.stocksense-marketing .text-gradient-emerald {
+  background: linear-gradient(100deg, #d8efe2 0%, #6fb98e 55%, #3d9a6b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stocksense-marketing .animate-marquee,
+  .stocksense-marketing .animate-scroll-cue { animation: none; }
+}
+
+@keyframes ss-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ss-shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+@keyframes ss-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.stocksense-marketing .animate-fade-up { animation: ss-fade-up 480ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.stocksense-marketing .animate-pulse-dot { animation: ss-pulse-dot 1.6s ease-in-out infinite; }
+.stocksense-marketing .skeleton {
+  background: linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-surface-3) 50%, var(--color-surface-2) 100%);
+  background-size: 200% 100%;
+  animation: ss-shimmer 1.6s linear infinite;
+  border-radius: var(--radius-sm);
+}

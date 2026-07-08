@@ -7,6 +7,7 @@ import { StockHeader } from "@/components/stocks/stock-header";
 import { StockChart } from "@/components/charts/stock-chart";
 import { AIPredictionChart } from "@/components/charts/ai-prediction-chart";
 import { StockStats } from "@/components/stocks/stock-stats";
+import { AIReviewCard } from "@/components/stocks/ai-review-card";
 import { StockNews } from "@/components/stocks/stock-news";
 import { TradePanel } from "@/components/portfolio/trade-panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -83,6 +84,8 @@ export default async function StockPage({ params }: Props) {
             )}
 
             <StockStats quote={quote} />
+
+            <AIReviewCard ticker={ticker} />
 
             {news.length > 0 && (
               <Suspense fallback={<Skeleton className="h-64 w-full rounded-xl" />}>

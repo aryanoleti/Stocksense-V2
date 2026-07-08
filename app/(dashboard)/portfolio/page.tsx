@@ -1,6 +1,8 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { PortfolioDashboard } from "@/components/portfolio/portfolio-dashboard";
+import { PortfolioTabs } from "@/components/portfolio/portfolio-tabs";
+import { MyHoldings } from "@/components/holdings/my-holdings";
 import { getQuote } from "@/services/stock.service";
 
 export const metadata = { title: "Portfolio" };
@@ -55,11 +57,16 @@ export default async function PortfolioPage() {
   const netWorth = cashBalance + totalCurrentValue;
 
   return (
-    <PortfolioDashboard
-      portfolio={portfolio}
-      holdings={enrichedHoldings}
-      transactions={transactions}
-      stats={{ totalCurrentValue, totalInvested, totalPnL, totalPnLPercent, cashBalance, netWorth }}
+    <PortfolioTabs
+      simulator={
+        <PortfolioDashboard
+          portfolio={portfolio}
+          holdings={enrichedHoldings}
+          transactions={transactions}
+          stats={{ totalCurrentValue, totalInvested, totalPnL, totalPnLPercent, cashBalance, netWorth }}
+        />
+      }
+      myHoldings={<MyHoldings />}
     />
   );
 }

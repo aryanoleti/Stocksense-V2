@@ -6,14 +6,15 @@ const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password", "/api/auth"];
 
 export default auth(function middleware(req: any) {
   const { nextUrl, auth: session } = req;
-  const isPublic = PUBLIC_ROUTES.some((r) => nextUrl.pathname.startsWith(r));
+  const isPublic =
+    nextUrl.pathname === "/" || PUBLIC_ROUTES.some((r) => nextUrl.pathname.startsWith(r));
 
   if (!session && !isPublic) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
   if (session && (nextUrl.pathname === "/login" || nextUrl.pathname === "/signup")) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();

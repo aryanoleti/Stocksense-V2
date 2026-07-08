@@ -33,3 +33,20 @@ export const chatMessageSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type TradeInput = z.infer<typeof tradeSchema>;
+
+export const realHoldingSchema = z.object({
+  ticker: z.string().min(1),
+  companyName: z.string().min(1),
+  quantity: z.number().positive("Quantity must be positive"),
+  avgPrice: z.number().positive("Buy price must be positive"),
+  buyDate: z.coerce.date(),
+});
+
+export const realHoldingUpdateSchema = z.object({
+  quantity: z.number().positive("Quantity must be positive").optional(),
+  avgPrice: z.number().positive("Buy price must be positive").optional(),
+  buyDate: z.coerce.date().optional(),
+});
+
+export type RealHoldingInput = z.infer<typeof realHoldingSchema>;
+export type RealHoldingUpdateInput = z.infer<typeof realHoldingUpdateSchema>;
