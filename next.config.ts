@@ -1,21 +1,17 @@
 import type { NextConfig } from "next";
 
+// Derive the repo name from the Actions environment so the same code deploys
+// correctly to GitHub Pages from any repo (basePath must match the repo name).
+const repo = process.env.GITHUB_REPOSITORY?.split("/")[1] ?? "stocksense-the-goat";
+
 const nextConfig: NextConfig = {
-  typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
-  experimental: {
-    serverActions: {
-      allowedOrigins: ["localhost:3000"],
-    },
-  },
-  images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "**.finnhub.io" },
-      { protocol: "https", hostname: "**.yahoofinance.com" },
-      { protocol: "https", hostname: "logo.clearbit.com" },
-      { protocol: "https", hostname: "**.cloudinary.com" },
-      { protocol: "https", hostname: "lh3.googleusercontent.com" },
-    ],
+  output: "export",
+  basePath: process.env.GITHUB_ACTIONS ? `/${repo}` : "",
+  assetPrefix: process.env.GITHUB_ACTIONS ? `/${repo}/` : undefined,
+  trailingSlash: true,
+  images: { unoptimized: true },
+  env: {
+    NEXT_PUBLIC_BASE_PATH: process.env.GITHUB_ACTIONS ? `/${repo}` : "",
   },
 };
 
