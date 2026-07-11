@@ -301,11 +301,13 @@ export function PortfolioApp() {
                       <stop offset="100%" stopColor="#115e3c" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="#eef1ee" vertical={false} />
+                  <CartesianGrid stroke="var(--color-border)" vertical={false} />
                   <XAxis dataKey="t" tickFormatter={() => ""} tickLine={false} axisLine={false} />
-                  <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "#7c8a82" }} domain={["auto", "auto"]} width={62} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
+                  <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "var(--color-fg-subtle)" }} domain={["auto", "auto"]} width={62} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
                   <Tooltip
                     contentStyle={{
+                      background: "var(--color-surface)",
+                      color: "var(--color-fg)",
                       border: "1px solid var(--color-border)",
                       borderRadius: 12,
                       boxShadow: "0 12px 30px -16px rgba(13,31,23,0.18)",

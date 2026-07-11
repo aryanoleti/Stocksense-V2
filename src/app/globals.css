@@ -56,6 +56,49 @@
   --shadow-xl: 0 32px 64px -24px rgba(13, 31, 23, 0.18);
 }
 
+/* Dark theme — toggled by adding `dark` to <html>. Only the neutral tokens
+   and tint shades change; the emerald brand identity stays intact. */
+.dark {
+  color-scheme: dark;
+
+  --color-bg: #0a100d;
+  --color-surface: #101713;
+  --color-surface-2: #17211c;
+  --color-surface-3: #1f2c25;
+  --color-border: #24322a;
+  --color-border-strong: #32463a;
+
+  --color-fg: #e9f1ec;
+  --color-fg-muted: #a9b8b0;
+  --color-fg-subtle: #76857d;
+
+  /* Tint shades used as chip/card backgrounds become dark-tinted */
+  --color-brand-50: #132a1e;
+  --color-brand-100: #1b3c2a;
+  /* Mid-brand used for solid buttons and text-on-tint — lifted for contrast */
+  --color-brand-600: #2e8659;
+  --color-brand-700: #35996a;
+  --color-brand-800: #2b7d55;
+
+  --color-up: #34b47c;
+  --color-up-soft: #10291d;
+  --color-down: #e0603f;
+  --color-down-soft: #321712;
+  --color-warn: #d29a2a;
+  --color-info: #5aa1e0;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 16px -6px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 20px 40px -16px rgba(0, 0, 0, 0.55), 0 6px 16px -8px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 32px 64px -24px rgba(0, 0, 0, 0.65);
+}
+
+.dark ::selection {
+  background: var(--color-brand-100);
+  color: var(--color-fg);
+}
+
 * {
   border-color: var(--color-border);
 }

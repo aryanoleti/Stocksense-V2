@@ -507,10 +507,10 @@ function PerformanceChart({
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke="#eef1ee" vertical={false} />
-              <XAxis dataKey="label" stroke="#7c8a82" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} minTickGap={28} />
+              <CartesianGrid stroke="var(--color-border)" vertical={false} />
+              <XAxis dataKey="label" stroke="var(--color-fg-subtle)" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} minTickGap={28} />
               <YAxis
-                stroke="#7c8a82"
+                stroke="var(--color-fg-subtle)"
                 tickLine={false}
                 axisLine={false}
                 domain={["dataMin - 4", "dataMax + 4"]}
@@ -520,6 +520,8 @@ function PerformanceChart({
               />
               <Tooltip
                 contentStyle={{
+                  background: "var(--color-surface)",
+                  color: "var(--color-fg)",
                   border: "1px solid var(--color-border)",
                   borderRadius: 12,
                   boxShadow: "0 12px 30px -16px rgba(13,31,23,0.18)",

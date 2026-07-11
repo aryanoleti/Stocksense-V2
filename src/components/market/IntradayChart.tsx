@@ -57,17 +57,17 @@ export function IntradayChart({ symbol, base, seed = 1 }: { symbol?: string; bas
               <stop offset="100%" stopColor="#115e3c" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#eef1ee" vertical={false} />
+          <CartesianGrid stroke="var(--color-border)" vertical={false} />
           <XAxis
             dataKey="time"
-            stroke="#7c8a82"
+            stroke="var(--color-fg-subtle)"
             tickLine={false}
             axisLine={false}
             interval={Math.max(1, Math.floor(data.length / 6))}
             tick={{ fontSize: 11 }}
           />
           <YAxis
-            stroke="#7c8a82"
+            stroke="var(--color-fg-subtle)"
             tickLine={false}
             axisLine={false}
             domain={["dataMin - 20", "dataMax + 20"]}
@@ -77,6 +77,8 @@ export function IntradayChart({ symbol, base, seed = 1 }: { symbol?: string; bas
           />
           <Tooltip
             contentStyle={{
+              background: "var(--color-surface)",
+              color: "var(--color-fg)",
               border: "1px solid var(--color-border)",
               borderRadius: 12,
               boxShadow: "0 12px 30px -16px rgba(13,31,23,0.18)",

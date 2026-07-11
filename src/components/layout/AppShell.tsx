@@ -23,6 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { cn } from "@/lib/cn";
 
@@ -197,6 +198,7 @@ function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           </span>
           Markets open
         </span>
+        <ThemeToggle />
         <button
           type="button"
           className="relative grid h-10 w-10 place-items-center rounded-xl border border-(--color-border) bg-(--color-surface) text-(--color-fg-muted) hover:bg-(--color-surface-2)"

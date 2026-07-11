@@ -8,11 +8,13 @@ export function SectorBars() {
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={SECTOR_PERFORMANCE} margin={{ top: 12, right: 8, left: 4, bottom: 0 }}>
-          <XAxis dataKey="sector" stroke="#7c8a82" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
-          <YAxis stroke="#7c8a82" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} unit="%" width={36} />
+          <XAxis dataKey="sector" stroke="var(--color-fg-subtle)" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+          <YAxis stroke="var(--color-fg-subtle)" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} unit="%" width={36} />
           <Tooltip
             cursor={{ fill: "rgba(17, 94, 60, 0.06)" }}
             contentStyle={{
+              background: "var(--color-surface)",
+              color: "var(--color-fg)",
               border: "1px solid var(--color-border)",
               borderRadius: 12,
               boxShadow: "0 12px 30px -16px rgba(13,31,23,0.18)",

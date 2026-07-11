@@ -38,6 +38,15 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-screen antialiased">
+        {/* Apply the saved (or system) theme before paint to avoid a flash */}
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{var t=localStorage.getItem("stocksense.theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}',
+          }}
+        />
         <AuthProvider>
           {children}
           <SignInModal />
