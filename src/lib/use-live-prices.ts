@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getQuote, getSparkQuotes, type SparkQuote } from "@/lib/api/yahoo";
+import { useRefreshMs } from "@/lib/refresh-rate";
 
 export type Tick = { price: number; change: number; changePct: number };
 
@@ -29,6 +30,7 @@ function jitter(price: number, prevClose: number, volatility: number): Tick {
 export function useLivePrice(symbol: string, basePrice: number, volatility = 0.0025) {
   const [tick, setTick] = useState<Tick>({ price: basePrice, change: 0, changePct: 0 });
   const anchorRef = useRef({ price: basePrice, prevClose: basePrice });
+  const refreshMs = useRefreshMs();
 
   useEffect(() => {
     anchorRef.current = { price: basePrice, prevClose: basePrice };
@@ -48,21 +50,23 @@ export function useLivePrice(symbol: string, basePrice: number, volatility = 0.0
       });
     }
     pull();
-    const id = setInterval(pull, SINGLE_REFRESH_MS);
+    const id = setInterval(pull, Math.max(refreshMs, SINGLE_REFRESH_MS));
     return () => {
       cancelled = true;
       clearInterval(id);
     };
-  }, [symbol]);
+  }, [symbol, refreshMs]);
 
   useEffect(() => {
+    // At slow rates (≥10s) users see only real quotes — no jitter between pulls.
+    if (refreshMs >= 10_000) return;
     const id = setInterval(() => {
       const { price, prevClose } = anchorRef.current;
       if (price <= 0) return; // no anchor yet (unknown symbol) — wait for a real quote
       setTick(jitter(price, prevClose, volatility));
-    }, JITTER_MS);
+    }, Math.max(refreshMs, 250));
     return () => clearInterval(id);
-  }, [volatility]);
+  }, [volatility, refreshMs]);
 
   return tick;
 }
@@ -81,6 +85,7 @@ export function useLivePrices(stocks: Array<{ symbol: string; basePrice: number 
 
   const anchorsRef = useRef<Record<string, { price: number; prevClose: number }>>({});
   const stocksRef = useRef(stocks);
+  const refreshMs = useRefreshMs();
 
   useEffect(() => {
     stocksRef.current = stocks;
@@ -116,14 +121,16 @@ export function useLivePrices(stocks: Array<{ symbol: string; basePrice: number 
       });
     }
     pull();
-    const id = setInterval(pull, BATCH_REFRESH_MS);
+    const id = setInterval(pull, Math.max(refreshMs, BATCH_REFRESH_MS));
     return () => {
       cancelled = true;
       clearInterval(id);
     };
-  }, []);
+  }, [refreshMs]);
 
   useEffect(() => {
+    // At slow rates (≥10s) users see only real quotes — no jitter between pulls.
+    if (refreshMs >= 10_000) return;
     const id = setInterval(() => {
       setPrices((prev) => {
         const next: Record<string, Tick> = { ...prev };
@@ -134,9 +141,9 @@ export function useLivePrices(stocks: Array<{ symbol: string; basePrice: number 
         }
         return next;
       });
-    }, JITTER_MS);
+    }, Math.max(refreshMs, 250));
     return () => clearInterval(id);
-  }, []);
+  }, [refreshMs]);
 
   return prices;
 }

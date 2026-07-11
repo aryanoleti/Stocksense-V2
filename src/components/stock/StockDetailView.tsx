@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Sparkles, TrendingUp, AlertTriangle, Activity, Bookmark, Bot } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { Card, CardEyebrow } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { StockHeader } from "@/components/stock/StockHeader";
 import { PriceChart } from "@/components/stock/PriceChart";
+import { StockAiPanel } from "@/components/stock/StockAiPanel";
 import { getChart, type Quote } from "@/lib/api/yahoo";
 import { industryPeers, instrumentHref } from "@/lib/universe";
 import { getStock, NIFTY_50 } from "@/lib/mock-data";
@@ -106,65 +107,7 @@ export function StockDetailView({ symbol, name, industry, kind }: Props) {
         </div>
 
         <div className="space-y-5">
-          <Card padding="md" className="border-(--color-brand-100) bg-(--color-brand-50)/40">
-            <div className="flex items-start gap-3">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-(--color-brand-700) text-white">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <CardEyebrow className="text-(--color-brand-700)">AI research</CardEyebrow>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-(--color-brand-700)">
-                    <Activity className="h-3 w-3" /> Gemini
-                  </span>
-                </div>
-                <p className="mt-2 text-[14.5px] leading-relaxed text-(--color-fg)">
-                  Ask Sense for a live read on {name} — recent momentum, peer comparison, and the
-                  risks worth knowing before you dig deeper.
-                </p>
-                <Button href="/ask-ai" variant="subtle" size="sm" className="mt-4">
-                  <Bot className="h-3.5 w-3.5" /> Ask AI about {symbol}
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
-          </Card>
-
-          {curated && (
-            <>
-              <Card padding="md">
-                <CardEyebrow>Opportunities</CardEyebrow>
-                <ul className="mt-3 space-y-3">
-                  {[
-                    "Stable earnings growth with low debt-to-equity",
-                    "Sector tailwinds expected through FY27",
-                    "Trading at a discount to its 5-year mean P/E",
-                  ].map((p) => (
-                    <li key={p} className="flex items-start gap-2 text-[14px] text-(--color-fg)">
-                      <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-(--color-up)" />
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-
-              <Card padding="md">
-                <CardEyebrow>Risks</CardEyebrow>
-                <ul className="mt-3 space-y-3">
-                  {[
-                    "Higher beta — expect amplified moves vs the index",
-                    "Margin pressure from input-cost inflation",
-                    "Macro headwinds in export-oriented segments",
-                  ].map((p) => (
-                    <li key={p} className="flex items-start gap-2 text-[14px] text-(--color-fg)">
-                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-(--color-down)" />
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            </>
-          )}
+          <StockAiPanel symbol={symbol} name={name} curated={curated} />
 
           <Card padding="md">
             <CardEyebrow>Trading snapshot</CardEyebrow>

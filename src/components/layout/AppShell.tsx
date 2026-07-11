@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
+import { RefreshRateSelect } from "./RefreshRateSelect";
+import { AppTour } from "./AppTour";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { cn } from "@/lib/cn";
 
@@ -66,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between px-5 pt-5 pb-4">
-            <Logo />
+            <Logo linked={false} />
             <button
               type="button"
               onClick={() => setOpen(false)}
@@ -96,6 +98,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
+        <AppTour />
         <Topbar onMenuClick={() => setOpen(true)} />
         <main className="flex-1 px-5 py-6 md:px-8 md:py-8">
           <div className="mx-auto max-w-[1280px]">{children}</div>
@@ -198,6 +201,7 @@ function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           </span>
           Markets open
         </span>
+        <RefreshRateSelect />
         <ThemeToggle />
         <button
           type="button"

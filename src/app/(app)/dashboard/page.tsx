@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { IndexCard } from "@/components/market/IndexCard";
+import { MarketAiBrief } from "@/components/market/MarketAiBrief";
 import { MoversTable } from "@/components/market/MoversTable";
 import { SearchHero } from "@/components/market/SearchHero";
 import { Greeting } from "@/components/layout/Greeting";
@@ -50,9 +51,12 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* AI market brief */}
+      <MarketAiBrief />
+
       {/* Indices */}
       <section>
-        <SectionHeader title="Markets at a glance" subtitle="Major Indian indices, updating live" />
+        <SectionHeader title="Markets at a glance" subtitle="Major Indian indices, updating live — click any card for the full picture" />
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {INDICES.slice(0, 4).map((i, idx) => (
             <IndexCard key={i.symbol} symbol={i.symbol} name={i.name} base={i.base} highlight={idx === 0} />

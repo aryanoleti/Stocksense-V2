@@ -6,7 +6,9 @@ const KEY = process.env.NEXT_PUBLIC_GEMINI_KEY;
 const MODEL = "gemini-2.5-flash";
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
-export type GeminiPart = { text: string };
+export type GeminiPart =
+  | { text: string }
+  | { inlineData: { mimeType: string; data: string } };
 export type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
 
 type GenerateOptions = {

@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { getChart } from "@/lib/api/yahoo";
 import { VIEW_RANGES, sliceCandles, candleLabel } from "@/lib/chart-ranges";
+import { useRefreshMs } from "@/lib/refresh-rate";
 import { generateForecast, generatePriceHistory } from "@/lib/mock-data";
 
 type HistoryPoint = { date: string; price: number };
@@ -19,6 +20,7 @@ type HistoryPoint = { date: string; price: number };
 export function PriceChart({ symbol, basePrice }: { symbol: string; basePrice: number }) {
   const [range, setRange] = useState(VIEW_RANGES[4]); // 3M default
   const seed = symbol.charCodeAt(0) + symbol.charCodeAt(1);
+  const refreshMs = useRefreshMs();
 
   // Placeholder series until live candles land; AI forecast only applies to
   // daily-or-coarser ranges (a 7-day projection makes no sense on 5m bars).
@@ -51,10 +53,15 @@ export function PriceChart({ symbol, basePrice }: { symbol: string; basePrice: n
       );
     }
     load();
+    // Keep the chart live: intraday ranges re-pull at the user's refresh rate
+    // (min 5s — the cache TTL floors real network calls anyway), daily+ every 60s.
+    const pollMs = range.intraday ? Math.max(5000, refreshMs) : 60_000;
+    const id = setInterval(load, pollMs);
     return () => {
       cancelled = true;
+      clearInterval(id);
     };
-  }, [symbol, range, mockHistory]);
+  }, [symbol, range, mockHistory, refreshMs]);
 
   const forecast = useMemo(() => {
     if (!showForecast) return [];

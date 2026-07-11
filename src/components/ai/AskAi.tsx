@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, TrendingUp, AlertTriangle, ArrowRight, Bot } from "lucide-react";
+import { Send, Sparkles, TrendingUp, AlertTriangle, ArrowRight, Bot, ImagePlus, X } from "lucide-react";
 import Link from "next/link";
 import { Card, CardEyebrow } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -24,7 +24,11 @@ type Message = {
   role: "user" | "ai";
   text: string;
   rich?: Rich;
+  /** Data URLs of screenshots the user attached (display only). */
+  images?: string[];
 };
+
+type Attachment = { mime: string; data: string };
 
 type GeminiAnswer = {
   text: string;
@@ -121,36 +125,80 @@ export function AskAi() {
   const [messages, setMessages] = useState<Message[]>(INITIAL);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const autoSent = useRef(false);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, thinking]);
 
+  // Deep link: /ask-ai/?q=… auto-sends the prompt (used by stock-page chips).
+  useEffect(() => {
+    if (autoSent.current) return;
+    autoSent.current = true;
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) send(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function onPaste(e: React.ClipboardEvent) {
+    const items = Array.from(e.clipboardData?.items ?? []);
+    const imgs = items.filter((i) => i.type.startsWith("image/"));
+    if (imgs.length === 0) return;
+    e.preventDefault();
+    for (const item of imgs) {
+      const file = item.getAsFile();
+      if (!file) continue;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const url = String(reader.result);
+        const base64 = url.split(",")[1];
+        if (base64) setAttachments((a) => [...a.slice(-3), { mime: file.type, data: base64 }]);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   async function send(prompt: string) {
     const trimmed = prompt.trim();
-    if (!trimmed) return;
-    const userMsg: Message = { id: `u-${Date.now()}`, role: "user", text: trimmed };
+    if (!trimmed && attachments.length === 0) return;
+    const atts = attachments;
+    const text = trimmed || "What do you see in this screenshot?";
+    const userMsg: Message = {
+      id: `u-${Date.now()}`,
+      role: "user",
+      text,
+      images: atts.map((a) => `data:${a.mime};base64,${a.data}`),
+    };
     const next = [...messages, userMsg];
     setMessages(next);
     setInput("");
+    setAttachments([]);
     setThinking(true);
 
-    const history: GeminiContent[] = next
-      .filter((m) => m.id !== "seed-1")
-      .map((m) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.text }],
-      }));
+    // Past turns as text; the new turn carries any pasted screenshots inline.
+    const history: GeminiContent[] = [
+      ...messages
+        .filter((m) => m.id !== "seed-1")
+        .map((m) => ({
+          role: (m.role === "user" ? "user" : "model") as "user" | "model",
+          parts: [{ text: m.text }],
+        })),
+      {
+        role: "user" as const,
+        parts: [{ text }, ...atts.map((a) => ({ inlineData: { mimeType: a.mime, data: a.data } }))],
+      },
+    ];
 
     let aiMsg: Message;
     const answer = await generateJson<GeminiAnswer>(history, { system: SYSTEM_PROMPT, temperature: 0.55 });
     if (!answer) {
-      aiMsg = fallbackResponse(trimmed);
+      aiMsg = fallbackResponse(text);
     } else {
       const stock = await hydrateStockCard({
         ...answer,
-        symbol: answer.symbol ?? findKnownSymbol(trimmed),
+        symbol: answer.symbol ?? findKnownSymbol(text),
       });
       aiMsg = {
         id: `a-${Date.now()}`,
@@ -218,11 +266,36 @@ export function AskAi() {
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-5">
-          {messages.map((m) => (m.role === "user" ? <UserBubble key={m.id} text={m.text} /> : <AiBubble key={m.id} msg={m} />))}
+          {messages.map((m) => (m.role === "user" ? <UserBubble key={m.id} text={m.text} images={m.images} /> : <AiBubble key={m.id} msg={m} />))}
           {thinking && <Thinking />}
         </div>
 
         <div className="border-t border-(--color-border) bg-(--color-bg) p-4">
+          {attachments.length > 0 && (
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              {attachments.map((a, i) => (
+                <span key={i} className="relative inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`data:${a.mime};base64,${a.data}`}
+                    alt={`Pasted screenshot ${i + 1}`}
+                    className="h-14 w-20 rounded-lg border border-(--color-border) object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAttachments((arr) => arr.filter((_, j) => j !== i))}
+                    className="absolute -right-1.5 -top-1.5 grid h-4.5 w-4.5 place-items-center rounded-full bg-(--color-fg) text-white"
+                    aria-label="Remove screenshot"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+              <span className="inline-flex items-center gap-1 text-[11px] text-(--color-fg-subtle)">
+                <ImagePlus className="h-3 w-3" /> attached to your next message
+              </span>
+            </div>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -239,14 +312,15 @@ export function AskAi() {
                   send(input);
                 }
               }}
-              placeholder="Ask anything — e.g. 'How is Infosys doing this quarter?'"
+              onPaste={onPaste}
+              placeholder="Ask anything — or paste a chart screenshot (Ctrl+V)…"
               rows={1}
               className="flex-1 resize-none bg-transparent px-2 py-2 text-[14.5px] text-(--color-fg) placeholder:text-(--color-fg-subtle) focus:outline-none"
             />
             <button
               type="submit"
               className="grid h-10 w-10 place-items-center rounded-xl bg-(--color-brand-700) text-white hover:bg-(--color-brand-800) disabled:opacity-50"
-              disabled={!input.trim() || thinking}
+              disabled={(!input.trim() && attachments.length === 0) || thinking}
               aria-label="Send"
             >
               <Send className="h-4 w-4" />
@@ -261,11 +335,21 @@ export function AskAi() {
   );
 }
 
-function UserBubble({ text }: { text: string }) {
+function UserBubble({ text, images }: { text: string; images?: string[] }) {
   return (
     <div className="flex justify-end">
-      <div className="max-w-[78%] rounded-2xl rounded-tr-md bg-(--color-brand-700) px-4 py-3 text-[14.5px] text-white shadow-[0_8px_24px_-16px_rgba(11,90,60,0.45)]">
-        {text}
+      <div className="max-w-[78%] space-y-2">
+        {images && images.length > 0 && (
+          <div className="flex flex-wrap justify-end gap-1.5">
+            {images.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={i} src={src} alt={`Screenshot ${i + 1}`} className="max-h-40 rounded-xl border border-(--color-border) object-contain" />
+            ))}
+          </div>
+        )}
+        <div className="rounded-2xl rounded-tr-md bg-(--color-brand-700) px-4 py-3 text-[14.5px] text-white shadow-[0_8px_24px_-16px_rgba(11,90,60,0.45)]">
+          {text}
+        </div>
       </div>
     </div>
   );

@@ -5,21 +5,28 @@ export function Logo({
   className,
   href = "/",
   tone = "light",
+  linked = true,
 }: {
   className?: string;
   href?: string;
   tone?: "light" | "dark";
+  /** false renders a plain, non-clickable logo (used inside the app shell). */
+  linked?: boolean;
 }) {
   const fg = tone === "dark" ? "text-white" : "text-(--color-fg)";
-  return (
-    <Link
-      href={href}
-      className={cn("inline-flex items-center gap-2.5 font-semibold tracking-tight", fg, className)}
-    >
+  const classes = cn("inline-flex items-center gap-2.5 font-semibold tracking-tight", fg, className);
+  const inner = (
+    <>
       <LogoMark tone={tone} />
       <span className="text-[17px]">
         Stock<span className={tone === "dark" ? "text-(--color-brand-300)" : "text-(--color-brand-600)"}>Sense</span>
       </span>
+    </>
+  );
+  if (!linked) return <span className={classes}>{inner}</span>;
+  return (
+    <Link href={href} className={classes}>
+      {inner}
     </Link>
   );
 }

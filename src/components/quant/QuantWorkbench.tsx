@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { getChart, type Candle } from "@/lib/api/yahoo";
 import { QUANT_RANGES, sliceCandles, candleLabel, type RangeDef } from "@/lib/chart-ranges";
+import { useRefreshMs } from "@/lib/refresh-rate";
+import { Zoomable } from "@/components/ui/Zoomable";
 import { searchUniverse, lookupInstrument } from "@/lib/universe";
 import {
   fmt,
@@ -275,38 +277,47 @@ export function QuantWorkbench() {
   const label = inst?.name ?? (symbol === "NIFTY50" ? "NIFTY 50" : symbol);
   const results = useMemo(() => (query.trim() ? searchUniverse(query, 6) : []), [query]);
   const rangeDef = QUANT_RANGES.find((x) => x.id === rangeId) ?? QUANT_RANGES[5];
+  const refreshMs = useRefreshMs();
 
-  // Stage 1: fetch data
+  // Stage 1: fetch data (and keep it live at the user's refresh rate)
   useEffect(() => {
     let cancelled = false;
+    let first = true;
     setCandles(null);
     setStage(0);
     setAi(null);
     setAiState("idle");
-    getChart(symbol, rangeDef.range, rangeDef.interval).then((res) => {
+    async function load() {
+      const res = await getChart(symbol, rangeDef.range, rangeDef.interval);
       if (cancelled) return;
       const raw = res?.candles.filter((c) => c.price > 0) ?? [];
       const list = sliceCandles(raw, rangeDef);
       if (list.length > 30) {
         setCandles(list);
-      } else {
+      } else if (first) {
         const prices = fallbackSeries(symbol.length, isIndex ? 24000 : 1500);
         setCandles(prices.map((p, i) => ({ time: i, price: p })));
       }
-    });
+      first = false;
+    }
+    load();
+    const pollMs = rangeDef.intraday ? Math.max(5000, refreshMs) : 60_000;
+    const id = setInterval(load, pollMs);
     return () => {
       cancelled = true;
+      clearInterval(id);
     };
-  }, [symbol, rangeDef, isIndex]);
+  }, [symbol, rangeDef, isIndex, refreshMs]);
 
   const computed = useMemo<Computed | null>(() => {
     if (!candles) return null;
     return computeAll(candles.map((c) => c.price), candles);
   }, [candles]);
 
-  // Advance pipeline stages with a beat between each
+  // Advance pipeline stages once when data first lands (not on live re-polls)
+  const hasData = !!computed;
   useEffect(() => {
-    if (!computed) return;
+    if (!hasData) return;
     setStage(1);
     const t2 = setTimeout(() => setStage(2), 550);
     const t3 = setTimeout(() => setStage(3), 1150);
@@ -316,7 +327,7 @@ export function QuantWorkbench() {
       clearTimeout(t3);
       clearTimeout(t4);
     };
-  }, [computed]);
+  }, [hasData, symbol, rangeId]);
 
   // Stage 4: AI plain-English take (overview tab)
   useEffect(() => {
@@ -571,8 +582,8 @@ function OverviewTab({
 }) {
   return (
     <div className="space-y-5 reveal reveal-shown">
-      <div data-tour="chart" className="glass rounded-2xl p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <Zoomable title={`${label} · price & indicators`} data-tour="chart" className="glass rounded-2xl p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 pr-8">
           <p className="text-[14px] font-semibold tracking-tight">{label}</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-(--color-fg-muted)">
             <Legend color="#115e3c" label="Close" />
@@ -584,7 +595,7 @@ function OverviewTab({
           </div>
         </div>
         <MainChart computed={computed} unit={unit} showForecast={showForecast} rangeDef={rangeDef} />
-      </div>
+      </Zoomable>
 
       {/* Indicator snapshots — click to zoom */}
       <div data-tour="cards" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -740,7 +751,7 @@ Return JSON only: {"take": "2-3 beginner-friendly sentences on what momentum say
   return (
     <div className="space-y-5 reveal reveal-shown">
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="glass rounded-2xl p-5">
+        <Zoomable title="RSI (14)" className="glass rounded-2xl p-5">
           <TabCardHeader icon={<Gauge className="h-4 w-4" />} title="RSI (14)" formula="RSI = 100 − 100/(1+RS), RS = avgGain/avgLoss" />
           <div className="mt-4">
             <RsiGauge value={c.rsi.rsi} large />
@@ -752,9 +763,9 @@ Return JSON only: {"take": "2-3 beginner-friendly sentences on what momentum say
             <p className="mb-2 text-[11px] uppercase tracking-[0.12em] font-semibold text-(--color-fg-subtle)">RSI history</p>
             <SeriesChart values={c.rsiSeries} height={140} color="var(--color-info)" domain={[0, 100]} guides={[{ v: 70, label: "70" }, { v: 30, label: "30" }]} />
           </div>
-        </div>
+        </Zoomable>
 
-        <div className="glass rounded-2xl p-5">
+        <Zoomable title="MACD (12, 26, 9)" className="glass rounded-2xl p-5">
           <TabCardHeader icon={<LineChart className="h-4 w-4" />} title="MACD (12, 26, 9)" formula="MACD = EMA₁₂ − EMA₂₆; signal = EMA₉(MACD); hist = MACD − signal" />
           <div className="mt-4">
             <MacdChart macd={c.macd} height={220} />
@@ -763,7 +774,7 @@ Return JSON only: {"take": "2-3 beginner-friendly sentences on what momentum say
             MACD {fmt(c.macd.lastMacd)} · signal {fmt(c.macd.lastSignal)} · hist{" "}
             <span className={c.macd.lastHist >= 0 ? "text-(--color-up)" : "text-(--color-down)"}>{fmt(c.macd.lastHist)}</span>
           </p>
-        </div>
+        </Zoomable>
       </div>
 
       <div className="glass rounded-2xl p-5">
@@ -832,12 +843,12 @@ Return JSON only: {"take": "2-3 beginner-friendly sentences on how volatile this
         </div>
       </div>
 
-      <div className="glass rounded-2xl p-5">
+      <Zoomable title="Rolling annualised volatility" className="glass rounded-2xl p-5">
         <p className="mb-2 text-[11px] uppercase tracking-[0.12em] font-semibold text-(--color-fg-subtle)">
           Rolling annualised volatility (20-bar window)
         </p>
         <SeriesChart values={c.rollingVol} height={180} color="var(--color-warn)" format={(v) => pct(v, 0)} />
-      </div>
+      </Zoomable>
 
       <AiNote cacheKey={`${aiKeyBase}|volatility`} prompt={prompt} fallback={fallback} />
     </div>

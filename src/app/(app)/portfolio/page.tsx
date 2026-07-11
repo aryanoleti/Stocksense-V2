@@ -1,5 +1,5 @@
-import { PortfolioApp } from "@/components/portfolio/PortfolioApp";
+import { PortfolioTabs } from "@/components/portfolio/PortfolioTabs";
 
 export default function PortfolioPage() {
-  return <PortfolioApp />;
+  return <PortfolioTabs />;
 }

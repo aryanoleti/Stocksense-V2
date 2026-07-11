@@ -1,4 +1,5 @@
 import { MarketingNav } from "@/components/layout/MarketingNav";
+import { LandingRedirect } from "@/components/landing/LandingRedirect";
 import { CinematicHero } from "@/components/landing/CinematicHero";
 import { TickerTape } from "@/components/landing/TickerTape";
 import { MarketPulse } from "@/components/landing/MarketPulse";
@@ -13,6 +14,7 @@ import { Footer } from "@/components/landing/Footer";
 export default function LandingPage() {
   return (
     <main className="bg-(--color-bg)">
+      <LandingRedirect />
       {/* Dark cinematic region: nav, hero, live tape, horizontal market glide */}
       <div className="gradient-brand-soft noise relative overflow-clip">
         <div className="absolute inset-0 grid-mask pointer-events-none" />

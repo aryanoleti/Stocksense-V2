@@ -40,6 +40,12 @@ export type ChartInterval = "1m" | "5m" | "15m" | "30m" | "1h" | "1d" | "1wk" | 
 
 const QUOTE_TTL_MS = 4_000;
 const HISTORY_TTL_MS = 60_000;
+// Intraday candles refresh much faster so live charts actually move.
+const INTRADAY_TTL_MS = 10_000;
+
+function chartTtl(interval: ChartInterval): number {
+  return interval === "1d" || interval === "1wk" || interval === "1mo" ? HISTORY_TTL_MS : INTRADAY_TTL_MS;
+}
 
 type CacheEntry<T> = { at: number; value: T };
 const quoteCache = new Map<string, CacheEntry<Quote>>();
@@ -162,7 +168,7 @@ export async function getChart(
   const ysym = yahooSymbol(symbol);
   const key = `${ysym}|${range}|${interval}`;
   const cached = chartCache.get(key);
-  if (cached && Date.now() - cached.at < HISTORY_TTL_MS) return cached.value;
+  if (cached && Date.now() - cached.at < chartTtl(interval)) return cached.value;
 
   return once(`chart:${key}`, async () => {
     try {
