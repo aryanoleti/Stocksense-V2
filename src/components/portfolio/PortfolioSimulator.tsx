@@ -24,6 +24,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Input, Label } from "@/components/ui/Input";
 import { Delta } from "@/components/ui/Delta";
 import { useLivePrices } from "@/lib/use-live-prices";
+import { getQuote } from "@/lib/api/yahoo";
+import { ALL_ETFS, lookupInstrument } from "@/lib/universe";
 import { NIFTY_50 } from "@/lib/mock-data";
 import { formatINR } from "@/lib/format";
 
@@ -50,7 +52,22 @@ const SECTOR_COLORS: Record<string, string> = {
   Healthcare: "#088a52",
   Paints: "#dc6c1c",
   Consumer: "#d2eadb",
+  ETF: "#1d6fb8",
+  Other: "#8a978f",
 };
+
+// Any NSE instrument is tradeable: curated Nifty 50 stocks carry a base
+// price; everything else (ETFs, the wider stock universe) prices via live
+// quotes only.
+type Resolved = { name: string; sector: string; basePrice: number };
+
+function resolveInstrument(symbol: string): Resolved | null {
+  const curated = NIFTY_50.find((s) => s.symbol === symbol);
+  if (curated) return { name: curated.name, sector: curated.sector, basePrice: curated.basePrice };
+  const inst = lookupInstrument(symbol);
+  if (inst) return { name: inst.name, sector: inst.kind === "etf" ? "ETF" : inst.industry ?? "Other", basePrice: 0 };
+  return null;
+}
 
 function loadState(): State {
   if (typeof window === "undefined") return { cash: STARTING_CASH, positions: [], valueTrend: [] };
@@ -90,20 +107,19 @@ export function PortfolioSimulator() {
   }, [state]);
 
   const livePrices = useLivePrices(state.positions.flatMap((p) => {
-    const s = NIFTY_50.find((x) => x.symbol === p.symbol);
-    return s ? [{ symbol: p.symbol, basePrice: s.basePrice }] : [];
+    const r = resolveInstrument(p.symbol);
+    return r ? [{ symbol: p.symbol, basePrice: r.basePrice }] : [];
   }));
 
   const enrichedPositions = useMemo(() => {
-    return state.positions.flatMap((p) => {
-      const stock = NIFTY_50.find((x) => x.symbol === p.symbol);
-      if (!stock) return [];
-      const current = livePrices[p.symbol]?.price ?? stock.basePrice;
+    return state.positions.map((p) => {
+      const r = resolveInstrument(p.symbol) ?? { name: p.symbol, sector: "Other", basePrice: 0 };
+      const current = livePrices[p.symbol]?.price || r.basePrice || p.avgPrice;
       const invested = p.avgPrice * p.shares;
       const value = current * p.shares;
       const pl = value - invested;
       const plPct = invested ? (pl / invested) * 100 : 0;
-      return [{ ...p, stock, current, invested, value, pl, plPct }];
+      return { ...p, name: r.name, sector: r.sector, current, invested, value, pl, plPct };
     });
   }, [state.positions, livePrices]);
 
@@ -127,21 +143,23 @@ export function PortfolioSimulator() {
   const allocation = useMemo(() => {
     const bySector: Record<string, number> = {};
     for (const p of enrichedPositions) {
-      bySector[p.stock.sector] = (bySector[p.stock.sector] ?? 0) + p.value;
+      bySector[p.sector] = (bySector[p.sector] ?? 0) + p.value;
     }
     return Object.entries(bySector).map(([sector, v]) => ({ name: sector, value: v }));
   }, [enrichedPositions]);
 
-  function addPosition(e: React.FormEvent) {
+  async function addPosition(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     const sym = tickerInput.trim().toUpperCase();
     const shares = parseInt(sharesInput, 10);
     if (!sym) return setError("Enter a ticker symbol.");
     if (!shares || shares <= 0) return setError("Enter a positive number of shares.");
-    const stock = NIFTY_50.find((s) => s.symbol === sym);
-    if (!stock) return setError(`${sym} is not in our Nifty 50 universe.`);
-    const live = livePrices[sym]?.price ?? stock.basePrice;
+    const r = resolveInstrument(sym);
+    if (!r) return setError(`${sym} isn't a listed NSE stock or ETF.`);
+    let live = livePrices[sym]?.price || 0;
+    if (!live) live = (await getQuote(sym))?.price || r.basePrice;
+    if (!live) return setError("Couldn't fetch a live price for that symbol — try again in a moment.");
     const cost = live * shares;
     if (cost > state.cash) return setError(`Need ₹${formatINR(cost)}. You only have ₹${formatINR(state.cash)}.`);
 
@@ -165,7 +183,7 @@ export function PortfolioSimulator() {
     setState((prev) => {
       const pos = prev.positions.find((p) => p.symbol === symbol);
       if (!pos) return prev;
-      const live = livePrices[symbol]?.price ?? NIFTY_50.find((s) => s.symbol === symbol)?.basePrice ?? pos.avgPrice;
+      const live = livePrices[symbol]?.price || resolveInstrument(symbol)?.basePrice || pos.avgPrice;
       const proceeds = pos.shares * live;
       return { ...prev, cash: prev.cash + proceeds, positions: prev.positions.filter((p) => p.symbol !== symbol) };
     });
@@ -220,18 +238,23 @@ export function PortfolioSimulator() {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div>
               <CardEyebrow>Add a position</CardEyebrow>
-              <p className="mt-1 text-[13.5px] text-(--color-fg-muted)">Buys execute at the current live price.</p>
+              <p className="mt-1 text-[13.5px] text-(--color-fg-muted)">Stocks and ETFs — buys execute at the current live price.</p>
             </div>
             <Badge tone="brand">Virtual money</Badge>
           </div>
           <form onSubmit={addPosition} className="grid gap-3 sm:grid-cols-[1.4fr_1fr_auto]">
             <div>
               <Label htmlFor="sim-ticker">Ticker</Label>
-              <Input id="sim-ticker" value={tickerInput} onChange={(e) => setTickerInput(e.target.value.toUpperCase())} placeholder="e.g. INFY" className="mt-1.5" list="sim-tickers" />
+              <Input id="sim-ticker" value={tickerInput} onChange={(e) => setTickerInput(e.target.value.toUpperCase())} placeholder="e.g. INFY or NIFTYBEES" className="mt-1.5" list="sim-tickers" />
               <datalist id="sim-tickers">
                 {NIFTY_50.map((s) => (
                   <option key={s.symbol} value={s.symbol}>
                     {s.name}
+                  </option>
+                ))}
+                {ALL_ETFS.map((e) => (
+                  <option key={e.symbol} value={e.symbol}>
+                    {e.name} (ETF)
                   </option>
                 ))}
               </datalist>
@@ -307,7 +330,7 @@ export function PortfolioSimulator() {
                     <tr key={p.symbol} className="border-t border-(--color-border) text-[13.5px] tabular">
                       <td className="px-5 py-3">
                         <p className="font-semibold tracking-tight text-(--color-fg)">{p.symbol}</p>
-                        <p className="text-[11.5px] text-(--color-fg-subtle)">{p.stock.name}</p>
+                        <p className="text-[11.5px] text-(--color-fg-subtle)">{p.name}</p>
                       </td>
                       <td className="px-3 py-3 text-(--color-fg-muted)">{p.shares}</td>
                       <td className="px-3 py-3 text-right text-(--color-fg-muted)">₹{formatINR(p.avgPrice)}</td>
