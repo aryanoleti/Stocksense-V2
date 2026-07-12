@@ -10,11 +10,37 @@ import { Sparkles, Activity, ArrowRight, Bot, Scale, TrendingUp, AlertTriangle }
 import { Card, CardEyebrow } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getQuote } from "@/lib/api/yahoo";
-import { generateJson, hasGeminiKey } from "@/lib/api/gemini";
+import { generateJson, hasGeminiKey, getGeminiError } from "@/lib/api/gemini";
 import { NIFTY_50, type Stock } from "@/lib/mock-data";
 
 type Take = { summary: string; bullets: string[]; risks: string[] };
 const cache = new Map<string, Take>();
+
+function takeGet(symbol: string): Take | null {
+  if (typeof window === "undefined") return null;
+  const hit = cache.get(symbol);
+  if (hit) return hit;
+  try {
+    const raw = window.sessionStorage.getItem(`ss.ai.stock.${symbol}`);
+    if (raw) {
+      const v = JSON.parse(raw) as Take;
+      cache.set(symbol, v);
+      return v;
+    }
+  } catch {
+    /* noop */
+  }
+  return null;
+}
+
+function takeSet(symbol: string, v: Take) {
+  cache.set(symbol, v);
+  try {
+    window.sessionStorage.setItem(`ss.ai.stock.${symbol}`, JSON.stringify(v));
+  } catch {
+    /* noop */
+  }
+}
 
 function askHref(prompt: string) {
   return `/ask-ai/?q=${encodeURIComponent(prompt)}`;
@@ -29,12 +55,13 @@ export function StockAiPanel({
   name: string;
   curated?: Stock;
 }) {
-  const [take, setTake] = useState<Take | null>(cache.get(symbol) ?? null);
-  const [state, setState] = useState<"idle" | "loading" | "done" | "off">(cache.has(symbol) ? "done" : "idle");
+  const [take, setTake] = useState<Take | null>(() => takeGet(symbol));
+  const [state, setState] = useState<"idle" | "loading" | "done" | "off">(() => (takeGet(symbol) ? "done" : "idle"));
 
   useEffect(() => {
-    if (cache.has(symbol)) {
-      setTake(cache.get(symbol)!);
+    const cached = takeGet(symbol);
+    if (cached) {
+      setTake(cached);
       setState("done");
       return;
     }
@@ -59,7 +86,7 @@ Return JSON only: {"summary": "2-3 plain-English sentences on what this company 
       const res = await generateJson<Take>([{ role: "user", parts: [{ text: prompt }] }], { temperature: 0.4 });
       if (cancelled) return;
       if (res?.summary) {
-        cache.set(symbol, res);
+        takeSet(symbol, res);
         setTake(res);
         setState("done");
       } else {
@@ -126,10 +153,13 @@ Return JSON only: {"summary": "2-3 plain-English sentences on what this company 
         )}
 
         {state === "off" && (
-          <p className="mt-3 text-[13.5px] leading-relaxed text-(--color-fg-muted)">
-            Ask Sense for a live read on {name} — recent momentum, peer comparison, and the risks worth knowing.
-            {!hasGeminiKey() && " (Add a Gemini key to auto-generate a summary.)"}
-          </p>
+          <>
+            <p className="mt-3 text-[13.5px] leading-relaxed text-(--color-fg-muted)">
+              Ask Sense for a live read on {name} — recent momentum, peer comparison, and the risks worth knowing.
+              {!hasGeminiKey() && " (Add a Gemini key to auto-generate a summary.)"}
+            </p>
+            {getGeminiError() && <p className="mt-2 text-[11.5px] text-(--color-warn)">AI status: {getGeminiError()}</p>}
+          </>
         )}
 
         {/* Built-in prompt chips */}

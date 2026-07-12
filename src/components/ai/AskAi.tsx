@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth/AuthContext";
 import Link from "next/link";
 import { Card, CardEyebrow } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { generateJson, hasGeminiKey, type GeminiContent } from "@/lib/api/gemini";
+import { generateJson, hasGeminiKey, getGeminiError, type GeminiContent } from "@/lib/api/gemini";
 import { getQuote } from "@/lib/api/yahoo";
 import { NIFTY_50 } from "@/lib/mock-data";
 
@@ -126,7 +126,7 @@ function fallbackResponse(prompt: string): Message {
     id: `a-${Date.now()}`,
     role: "ai",
     text: hasGeminiKey()
-      ? "I couldn't reach Gemini just now — please try again in a moment."
+      ? `I couldn't reach Gemini just now${getGeminiError() ? ` (${getGeminiError()})` : ""} — please try again in a moment.`
       : "Add a NEXT_PUBLIC_GEMINI_KEY to enable real AI responses. In the meantime, " +
         "for a question like \"" + prompt + "\" I'd start with last earnings, peer multiples, and recent news.",
     rich: {

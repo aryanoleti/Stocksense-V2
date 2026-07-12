@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { IndexCard } from "@/components/market/IndexCard";
 import { MarketAiBrief } from "@/components/market/MarketAiBrief";
 import { MoversTable } from "@/components/market/MoversTable";
+import { RecentGrid } from "@/components/market/RecentGrid";
 import { SearchHero } from "@/components/market/SearchHero";
 import { Greeting } from "@/components/layout/Greeting";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -12,7 +13,6 @@ import { INDICES, NIFTY_50 } from "@/lib/mock-data";
 
 const SHORTCUTS = ["RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK", "SBIN", "BHARTIARTL", "TATAMOTORS"];
 const TRENDING = ["ADANIENT", "TATAMOTORS", "SBIN", "ICICIBANK", "RELIANCE", "BHARTIARTL"];
-const RECENT = ["ADANIENT", "SUNPHARMA", "AXISBANK", "BAJFINANCE", "KOTAKBANK", "HCLTECH"];
 
 export default function DashboardPage() {
   return (
@@ -184,29 +184,11 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Recently viewed */}
+      {/* Recently viewed — real history, recorded as you open stocks */}
       <section>
-        <SectionHeader title="Recently viewed" subtitle="Stocks you opened in the last 7 days" />
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {RECENT.map((sym) => {
-            const s = NIFTY_50.find((x) => x.symbol === sym)!;
-            return (
-              <Link
-                key={sym}
-                href={`/stocks/${sym}`}
-                className="group flex items-center justify-between gap-3 rounded-2xl border border-(--color-border) bg-(--color-surface) p-4 transition-all hover:-translate-y-0.5 hover:border-(--color-brand-300) hover:shadow-[0_18px_38px_-22px_rgba(13,31,23,0.14)]"
-              >
-                <div>
-                  <p className="text-[13.5px] font-semibold tracking-tight">{s.symbol}</p>
-                  <p className="text-[11.5px] text-(--color-fg-subtle)">{s.name}</p>
-                  <p className="mt-1 text-[10.5px] uppercase tracking-[0.1em] text-(--color-fg-subtle)">{s.sector}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[14px] font-semibold tabular">₹{s.basePrice.toFixed(2)}</p>
-                </div>
-              </Link>
-            );
-          })}
+        <SectionHeader title="Recently viewed" subtitle="Stocks you actually opened, newest first" />
+        <div className="mt-4">
+          <RecentGrid limit={6} compact />
         </div>
       </section>
     </div>

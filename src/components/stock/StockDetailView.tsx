@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { StockHeader } from "@/components/stock/StockHeader";
 import { PriceChart } from "@/components/stock/PriceChart";
 import { StockAiPanel } from "@/components/stock/StockAiPanel";
+import { recordRecent } from "@/lib/persist";
 import { getChart, type Quote } from "@/lib/api/yahoo";
 import { industryPeers, instrumentHref } from "@/lib/universe";
 import { getStock, NIFTY_50 } from "@/lib/mock-data";
@@ -29,6 +30,7 @@ export function StockDetailView({ symbol, name, industry, kind }: Props) {
   const [watched, setWatched] = useState(false);
 
   useEffect(() => {
+    recordRecent(symbol);
     let cancelled = false;
     getChart(symbol, "1d", "5m").then((r) => {
       if (!cancelled && r) setMeta(r.quote);

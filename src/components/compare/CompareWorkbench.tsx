@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Delta } from "@/components/ui/Delta";
 import { useLivePrices } from "@/lib/use-live-prices";
+import { usePersistentState } from "@/lib/persist";
 import { getChart, type ChartInterval, type ChartRange } from "@/lib/api/yahoo";
 import { generateJson, hasGeminiKey, type GeminiContent } from "@/lib/api/gemini";
 import { NIFTY_50, generatePriceHistory, type Stock } from "@/lib/mock-data";
@@ -121,8 +122,9 @@ function shareScore(mine: number, theirs: number, better: "higher" | "lower"): n
 }
 
 export function CompareWorkbench() {
-  const [aSym, setASym] = useState("HDFCBANK");
-  const [bSym, setBSym] = useState("ICICIBANK");
+  // Picks persist across navigation; URL params (below) still win on load.
+  const [aSym, setASym] = usePersistentState("stocksense.compare.a", "HDFCBANK");
+  const [bSym, setBSym] = usePersistentState("stocksense.compare.b", "ICICIBANK");
   const [range, setRange] = useState<RangeOpt>(RANGES[1]);
 
   // Optional deep-link: /compare/?a=TCS&b=INFY

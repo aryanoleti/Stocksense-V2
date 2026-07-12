@@ -45,7 +45,8 @@ import {
 } from "@/lib/quant";
 import { ensembleForecast, type EnsembleForecast } from "@/lib/forecast";
 import { bullBearScore, type BullBearScore } from "@/lib/signals";
-import { generateJson, hasGeminiKey } from "@/lib/api/gemini";
+import { generateJson, hasGeminiKey, getGeminiError } from "@/lib/api/gemini";
+import { usePersistentState } from "@/lib/persist";
 import { useCountUp } from "@/lib/use-reveal";
 import { fallbackSeries } from "@/lib/quant-steps";
 import { cn } from "@/lib/cn";
@@ -194,14 +195,42 @@ function computeAll(prices: number[], candles: Candle[]): Computed {
 type AiNoteData = { take: string; watch: string };
 const aiNoteCache = new Map<string, AiNoteData>();
 
+// Session-persistent cache: summaries survive reloads within the browser
+// session, so navigating around doesn't re-spend Gemini quota.
+function noteCacheGet(key: string): AiNoteData | null {
+  if (typeof window === "undefined") return null;
+  const hit = aiNoteCache.get(key);
+  if (hit) return hit;
+  try {
+    const raw = window.sessionStorage.getItem(`ss.ai.note.${key}`);
+    if (raw) {
+      const v = JSON.parse(raw) as AiNoteData;
+      aiNoteCache.set(key, v);
+      return v;
+    }
+  } catch {
+    /* noop */
+  }
+  return null;
+}
+
+function noteCacheSet(key: string, v: AiNoteData) {
+  aiNoteCache.set(key, v);
+  try {
+    window.sessionStorage.setItem(`ss.ai.note.${key}`, JSON.stringify(v));
+  } catch {
+    /* noop */
+  }
+}
+
 function AiNote({ cacheKey, prompt, fallback }: { cacheKey: string; prompt: string; fallback: string }) {
-  const [note, setNote] = useState<AiNoteData | null>(aiNoteCache.get(cacheKey) ?? null);
-  const [state, setState] = useState<"loading" | "done" | "off">(
-    aiNoteCache.has(cacheKey) ? "done" : hasGeminiKey() ? "loading" : "off",
+  const [note, setNote] = useState<AiNoteData | null>(() => noteCacheGet(cacheKey));
+  const [state, setState] = useState<"loading" | "done" | "off">(() =>
+    noteCacheGet(cacheKey) ? "done" : hasGeminiKey() ? "loading" : "off",
   );
 
   useEffect(() => {
-    const cached = aiNoteCache.get(cacheKey);
+    const cached = noteCacheGet(cacheKey);
     if (cached) {
       setNote(cached);
       setState("done");
@@ -217,7 +246,7 @@ function AiNote({ cacheKey, prompt, fallback }: { cacheKey: string; prompt: stri
     generateJson<AiNoteData>([{ role: "user", parts: [{ text: prompt }] }], { temperature: 0.4 }).then((res) => {
       if (cancelled) return;
       if (res?.take) {
-        aiNoteCache.set(cacheKey, res);
+        noteCacheSet(cacheKey, res);
         setNote(res);
         setState("done");
       } else {
@@ -250,7 +279,12 @@ function AiNote({ cacheKey, prompt, fallback }: { cacheKey: string; prompt: stri
           )}
         </div>
       )}
-      {state === "off" && <p className="mt-3 text-[13.5px] leading-relaxed text-(--color-fg-muted)">{fallback}</p>}
+      {state === "off" && (
+        <>
+          <p className="mt-3 text-[13.5px] leading-relaxed text-(--color-fg-muted)">{fallback}</p>
+          {getGeminiError() && <p className="mt-2 text-[11.5px] text-(--color-warn)">AI status: {getGeminiError()}</p>}
+        </>
+      )}
       <p className="mt-3 border-t border-(--color-border) pt-2.5 text-[10.5px] text-(--color-fg-subtle)">
         Educational read of the computed values above — not investment advice.
       </p>
@@ -261,13 +295,14 @@ function AiNote({ cacheKey, prompt, fallback }: { cacheKey: string; prompt: stri
 /* ---------------------------------------------------------------- shell */
 
 export function QuantWorkbench() {
-  const [symbol, setSymbol] = useState("NIFTY50");
-  const [rangeId, setRangeId] = useState("6M");
+  // Symbol, range and tab persist so switching pages doesn't lose your spot.
+  const [symbol, setSymbol] = usePersistentState("stocksense.quant.symbol", "NIFTY50");
+  const [rangeId, setRangeId] = usePersistentState("stocksense.quant.range", "6M");
   const [query, setQuery] = useState("");
   const [focus, setFocus] = useState(false);
   const [candles, setCandles] = useState<Candle[] | null>(null);
   const [stage, setStage] = useState(0);
-  const [tab, setTab] = useState<QuantTabId>("overview");
+  const [tab, setTab] = usePersistentState<QuantTabId>("stocksense.quant.tab", "overview");
   const [ai, setAi] = useState<AiTake | null>(null);
   const [aiState, setAiState] = useState<"idle" | "loading" | "done" | "off">("idle");
 

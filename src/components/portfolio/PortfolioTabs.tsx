@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { Briefcase, Gamepad2 } from "lucide-react";
 import { PortfolioApp } from "./PortfolioApp";
 import { PortfolioSimulator } from "./PortfolioSimulator";
+import { usePersistentState } from "@/lib/persist";
 import { cn } from "@/lib/cn";
 
 type Tab = "holdings" | "simulator";
 
 export function PortfolioTabs() {
-  const [tab, setTab] = useState<Tab>("holdings");
+  const [tab, setTab] = usePersistentState<Tab>("stocksense.portfolio.tab", "holdings");
   return (
     <div className="space-y-6">
       <div className="inline-flex items-center gap-1 rounded-2xl border border-(--color-border) bg-(--color-surface-2) p-1">
