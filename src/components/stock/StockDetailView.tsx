@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Bookmark } from "lucide-react";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 import { Card, CardEyebrow } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -21,9 +21,12 @@ type Props = {
   kind: "stock" | "etf";
 };
 
+const WATCHLIST_KEY = "stocksense.watchlist.v1";
+
 export function StockDetailView({ symbol, name, industry, kind }: Props) {
   const curated = getStock(symbol);
   const [meta, setMeta] = useState<Quote | null>(null);
+  const [watched, setWatched] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,6 +37,29 @@ export function StockDetailView({ symbol, name, industry, kind }: Props) {
       cancelled = true;
     };
   }, [symbol]);
+
+  // Same storage the Watchlist page reads, so additions show up there.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(WATCHLIST_KEY);
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      setWatched(Array.isArray(list) && list.includes(symbol));
+    } catch {
+      /* noop */
+    }
+  }, [symbol]);
+
+  function toggleWatchlist() {
+    try {
+      const raw = window.localStorage.getItem(WATCHLIST_KEY);
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      const next = list.includes(symbol) ? list.filter((s) => s !== symbol) : [...list, symbol];
+      window.localStorage.setItem(WATCHLIST_KEY, JSON.stringify(next));
+      setWatched(next.includes(symbol));
+    } catch {
+      /* noop */
+    }
+  }
 
   const peers = curated
     ? []
@@ -55,8 +81,14 @@ export function StockDetailView({ symbol, name, industry, kind }: Props) {
           <Card padding="md">
             <div className="mb-4 flex items-center justify-between">
               <CardEyebrow>Price chart</CardEyebrow>
-              <Button variant="outline" size="sm">
-                <Bookmark className="h-3.5 w-3.5" /> Add to watchlist
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleWatchlist}
+                className={watched ? "border-(--color-brand-300) text-(--color-brand-700)" : undefined}
+              >
+                {watched ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
+                {watched ? "In watchlist" : "Add to watchlist"}
               </Button>
             </div>
             <PriceChart symbol={symbol} basePrice={curated?.basePrice ?? 0} />

@@ -76,6 +76,7 @@ export function PortfolioApp() {
   const [sharesInput, setSharesInput] = useState("");
   const [priceInput, setPriceInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   // Hydrate from localStorage after mount.
   useEffect(() => {
@@ -175,8 +176,14 @@ export function PortfolioApp() {
     setState((prev) => ({ ...prev, holdings: prev.holdings.filter((p) => p.symbol !== symbol) }));
   }
 
+  // Two-step inline confirm — window.confirm() is unreliable in installed PWAs.
   function clearAll() {
-    if (!confirm("Remove all holdings? This clears your saved portfolio on this device.")) return;
+    if (!confirmClear) {
+      setConfirmClear(true);
+      setTimeout(() => setConfirmClear(false), 4000);
+      return;
+    }
+    setConfirmClear(false);
     setState(EMPTY);
   }
 
@@ -194,8 +201,13 @@ export function PortfolioApp() {
           </p>
         </div>
         {enriched.length > 0 && (
-          <Button variant="outline" size="sm" onClick={clearAll}>
-            <Trash2 className="h-3.5 w-3.5" /> Clear all
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearAll}
+            className={confirmClear ? "border-(--color-down)/40 text-(--color-down)" : undefined}
+          >
+            <Trash2 className="h-3.5 w-3.5" /> {confirmClear ? "Click again to confirm" : "Clear all"}
           </Button>
         )}
       </header>

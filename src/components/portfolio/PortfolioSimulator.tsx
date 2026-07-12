@@ -77,6 +77,7 @@ export function PortfolioSimulator() {
   const [tickerInput, setTickerInput] = useState("");
   const [sharesInput, setSharesInput] = useState("10");
   const [error, setError] = useState<string | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
     setState(loadState());
@@ -170,9 +171,20 @@ export function PortfolioSimulator() {
     });
   }
 
+  // Two-step inline confirm — window.confirm() is unreliable in installed
+  // PWAs (it can silently return false), which made resets appear to fail.
   function resetPortfolio() {
-    if (!confirm("Reset to ₹5,00,000 virtual cash? Your positions will be cleared.")) return;
-    setState({ cash: STARTING_CASH, positions: [], valueTrend: [{ t: Date.now(), v: STARTING_CASH }] });
+    if (!confirmReset) {
+      setConfirmReset(true);
+      setTimeout(() => setConfirmReset(false), 4000);
+      return;
+    }
+    setConfirmReset(false);
+    const fresh: State = { cash: STARTING_CASH, positions: [], valueTrend: [{ t: Date.now(), v: STARTING_CASH }] };
+    setState(fresh);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+    } catch {}
   }
 
   return (
@@ -186,8 +198,13 @@ export function PortfolioSimulator() {
             performance — no real money involved.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={resetPortfolio}>
-          Reset simulator
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={resetPortfolio}
+          className={confirmReset ? "border-(--color-down)/40 text-(--color-down)" : undefined}
+        >
+          {confirmReset ? "Click again to confirm reset" : "Reset simulator"}
         </Button>
       </header>
 

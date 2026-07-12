@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, TrendingUp, AlertTriangle, ArrowRight, Bot, ImagePlus, X } from "lucide-react";
+import { Send, Sparkles, TrendingUp, AlertTriangle, ArrowRight, Bot, ImagePlus, X, Plus, MessageSquare, Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/auth/AuthContext";
 import Link from "next/link";
 import { Card, CardEyebrow } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -29,6 +30,24 @@ type Message = {
 };
 
 type Attachment = { mime: string; data: string };
+
+// Saved conversations — per account, images stripped to respect the
+// localStorage quota. Most recent first, capped at 30.
+type ChatSession = { id: string; title: string; messages: Message[]; updatedAt: number };
+
+function chatsKey(email?: string) {
+  return `stocksense.chats.v1.${email ?? "anon"}`;
+}
+
+function loadChats(key: string): ChatSession[] {
+  try {
+    const raw = window.localStorage.getItem(key);
+    const list = raw ? (JSON.parse(raw) as ChatSession[]) : [];
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
 
 type GeminiAnswer = {
   text: string;
@@ -122,12 +141,69 @@ function fallbackResponse(prompt: string): Message {
 }
 
 export function AskAi() {
+  const { user } = useAuth();
+  const storageKey = chatsKey(user?.email);
   const [messages, setMessages] = useState<Message[]>(INITIAL);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [chats, setChats] = useState<ChatSession[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoSent = useRef(false);
+
+  useEffect(() => {
+    setChats(loadChats(storageKey));
+  }, [storageKey]);
+
+  // Persist the active conversation whenever it grows.
+  useEffect(() => {
+    const userMsgs = messages.filter((m) => m.role === "user");
+    if (userMsgs.length === 0) return;
+    const id = activeChatId ?? `c-${Date.now()}`;
+    if (!activeChatId) setActiveChatId(id);
+    const title = (userMsgs[0].text || "Screenshot chat").slice(0, 42);
+    const persistable = messages.map((m) => {
+      if (!m.images?.length) return m;
+      const { images: _drop, ...rest } = m;
+      return { ...rest, text: `📷 ${rest.text}` };
+    });
+    setChats((prev) => {
+      const next = [{ id, title, messages: persistable, updatedAt: Date.now() }, ...prev.filter((c) => c.id !== id)].slice(0, 30);
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        /* quota — keep the session in memory only */
+      }
+      return next;
+    });
+  }, [messages, activeChatId, storageKey]);
+
+  function newChat() {
+    setMessages(INITIAL);
+    setActiveChatId(null);
+    setAttachments([]);
+    setInput("");
+  }
+
+  function openChat(c: ChatSession) {
+    setMessages(c.messages);
+    setActiveChatId(c.id);
+    setAttachments([]);
+  }
+
+  function deleteChat(id: string) {
+    setChats((prev) => {
+      const next = prev.filter((c) => c.id !== id);
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        /* noop */
+      }
+      return next;
+    });
+    if (id === activeChatId) newChat();
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -230,10 +306,52 @@ export function AskAi() {
             <p className="text-[11.5px] text-(--color-fg-subtle)">AI markets assistant</p>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={newChat}
+          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--color-brand-700) px-3 py-2.5 text-[13px] font-semibold text-white hover:bg-(--color-brand-800)"
+        >
+          <Plus className="h-4 w-4" /> New chat
+        </button>
+
+        {chats.length > 0 && (
+          <>
+            <p className="mt-4 text-[11px] uppercase tracking-[0.14em] font-semibold text-(--color-fg-subtle)">
+              Recent chats
+            </p>
+            <ul className="mt-2 max-h-[26vh] space-y-1 overflow-y-auto pr-0.5">
+              {chats.map((c) => (
+                <li key={c.id} className="group flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => openChat(c)}
+                    className={`flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[12.5px] ${
+                      c.id === activeChatId
+                        ? "bg-(--color-brand-50) text-(--color-brand-700) font-semibold"
+                        : "text-(--color-fg-muted) hover:bg-(--color-surface-2)"
+                    }`}
+                  >
+                    <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{c.title}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteChat(c.id)}
+                    className="shrink-0 rounded-md p-1.5 text-(--color-fg-subtle) opacity-0 transition-opacity hover:text-(--color-down) group-hover:opacity-100"
+                    aria-label={`Delete chat: ${c.title}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
         <p className="mt-4 text-[11px] uppercase tracking-[0.14em] font-semibold text-(--color-fg-subtle)">
           Try asking
         </p>
-        <ul className="mt-3 space-y-1.5">
+        <ul className="mt-3 space-y-1.5 overflow-y-auto">
           {SUGGESTED.map((q) => (
             <li key={q}>
               <button

@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
+import { TopSearch } from "./TopSearch";
 import { RefreshRateSelect } from "./RefreshRateSelect";
 import { AppTour } from "./AppTour";
 import { UserMenu } from "@/components/auth/UserMenu";
@@ -182,17 +183,7 @@ function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         <LogoMark />
       </div>
       <div className="flex-1 max-w-xl">
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--color-fg-subtle)" />
-          <input
-            type="search"
-            placeholder="Search stocks, sectors, or ask the AI…"
-            className="h-10 w-full rounded-xl border border-(--color-border) bg-(--color-surface) pl-10 pr-3 text-sm placeholder:text-(--color-fg-subtle) focus:border-(--color-brand-300) focus:ring-4 focus:ring-(--color-brand-50) focus:outline-none"
-          />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10.5px] font-semibold text-(--color-fg-subtle) bg-(--color-surface-2) border border-(--color-border) rounded px-1.5 py-0.5">
-            ⌘K
-          </span>
-        </div>
+        <TopSearch />
       </div>
       <div className="flex items-center gap-3">
         <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-(--color-up)/30 bg-(--color-up-soft) px-2.5 py-1 text-[11px] font-semibold tracking-tight text-(--color-up)">

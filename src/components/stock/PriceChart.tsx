@@ -22,9 +22,9 @@ export function PriceChart({ symbol, basePrice }: { symbol: string; basePrice: n
   const seed = symbol.charCodeAt(0) + symbol.charCodeAt(1);
   const refreshMs = useRefreshMs();
 
-  // Placeholder series until live candles land; AI forecast only applies to
-  // daily-or-coarser ranges (a 7-day projection makes no sense on 5m bars).
-  const showForecast = !range.intraday;
+  // Placeholder series until live candles land. The 7-day AI forecast shows
+  // on every range so short-window viewers still get the projection.
+  const showForecast = true;
   const mockHistory = useMemo<HistoryPoint[]>(
     () =>
       basePrice > 0

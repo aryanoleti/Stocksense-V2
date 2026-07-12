@@ -14,6 +14,7 @@ export const DEFAULT_MS = 1000;
 export const REFRESH_OPTIONS = [
   { ms: 500, label: "0.5s" },
   { ms: 1000, label: "1s" },
+  { ms: 5000, label: "5s" },
   { ms: 10000, label: "10s" },
   { ms: 15000, label: "15s" },
 ];
