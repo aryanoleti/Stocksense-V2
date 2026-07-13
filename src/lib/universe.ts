@@ -71,11 +71,10 @@ export function industryPeers(symbol: string, limit = 4): Instrument[] {
   return NIFTY500_STOCKS.filter((s) => s.industry === me.industry && s.symbol !== me.symbol).slice(0, limit);
 }
 
-/** Static detail pages exist for Nifty 500 stocks; everything else opens the live quote viewer. */
+/** Every listed instrument (stock or ETF) has a full detail page. */
 export function instrumentHref(symbol: string): string {
   const inst = lookupInstrument(symbol);
-  if (inst?.kind === "stock" && inst.inNifty500) return `/stocks/${inst.symbol}`;
-  return `/quote/?s=${encodeURIComponent(symbol.toUpperCase())}`;
+  return `/stocks/${(inst?.symbol ?? symbol).toUpperCase()}`;
 }
 
 /**
