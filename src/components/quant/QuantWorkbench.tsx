@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   LayoutDashboard,
   Maximize2,
+  FileCode2,
 } from "lucide-react";
 import { getChart, type Candle } from "@/lib/api/yahoo";
 import { QUANT_RANGES, sliceCandles, candleLabel, type RangeDef } from "@/lib/chart-ranges";
@@ -51,6 +52,7 @@ import { useCountUp } from "@/lib/use-reveal";
 import { fallbackSeries } from "@/lib/quant-steps";
 import { cn } from "@/lib/cn";
 import { QuantTour } from "./QuantTour";
+import { QuantWorking } from "./QuantWorking";
 
 const PRESETS = ["NIFTY50", "RELIANCE", "TCS", "HDFCBANK", "INFY"];
 
@@ -61,7 +63,7 @@ const STAGES = [
   { id: 4, label: "AI analysis", icon: Sparkles },
 ];
 
-export type QuantTabId = "overview" | "momentum" | "volatility" | "levels" | "forecast";
+export type QuantTabId = "overview" | "momentum" | "volatility" | "levels" | "forecast" | "working";
 
 const TABS: Array<{ id: QuantTabId; label: string; icon: typeof Gauge }> = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -69,6 +71,7 @@ const TABS: Array<{ id: QuantTabId; label: string; icon: typeof Gauge }> = [
   { id: "volatility", label: "Volatility", icon: AlertTriangle },
   { id: "levels", label: "Levels", icon: Layers },
   { id: "forecast", label: "Forecast", icon: TrendingUp },
+  { id: "working", label: "Show the working", icon: FileCode2 },
 ];
 
 type AiTake = { summary: string; risk: string; drivers: string[] };
@@ -587,6 +590,17 @@ Return JSON only: {"summary": "2-3 plain-English sentences a beginner understand
       )}
       {computed && stage < 3 && tab === "forecast" && (
         <div className="glass rounded-2xl p-8 text-center text-[13.5px] text-(--color-fg-muted)">Forecast engine warming up…</div>
+      )}
+      {computed && stage >= 2 && tab === "working" && (
+        <QuantWorking
+          prices={computed.prices}
+          unit={unit}
+          label={label}
+          symbol={symbol}
+          rangeId={rangeId}
+          interval={rangeDef.interval}
+          times={computed.times}
+        />
       )}
     </div>
   );
