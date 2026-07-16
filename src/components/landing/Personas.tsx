@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { Reveal } from "@/components/ui/Reveal";
 
 const PERSONAS = [
   {
@@ -26,19 +27,19 @@ const PERSONAS = [
 export function Personas() {
   return (
     <section id="traders" className="mx-auto max-w-7xl px-5 py-20">
-      <div className="max-w-xl">
+      <Reveal className="max-w-xl">
         <p className="text-[12.5px] font-bold uppercase tracking-[0.1em] text-(--color-brand-300)">
           Made for your stage
         </p>
         <h2 className="mt-2.5 text-3xl font-semibold tracking-tight text-white sm:text-[36px] sm:leading-[1.12]">
           From first SIP question to full quant workflow
         </h2>
-      </div>
+      </Reveal>
       <div className="mt-11 grid gap-4 lg:grid-cols-2">
-        {PERSONAS.map((p) => (
+        {PERSONAS.map((p, pi) => (
+          <Reveal key={p.tag} delay={pi * 140}>
           <article
-            key={p.tag}
-            className="relative overflow-hidden rounded-[28px] border border-white/12 gradient-brand p-8 sm:p-9"
+            className="relative h-full overflow-hidden rounded-[28px] border border-white/12 gradient-brand p-8 sm:p-9"
           >
             <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-(--color-brand-400)/15 blur-3xl" />
             <p className="text-[12px] font-bold uppercase tracking-[0.09em] text-(--color-brand-300)">
@@ -55,6 +56,7 @@ export function Personas() {
               ))}
             </ul>
           </article>
+          </Reveal>
         ))}
       </div>
     </section>

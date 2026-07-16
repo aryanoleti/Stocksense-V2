@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, YAxis } from "recharts";
 import { ArrowRight, ArrowUpRight, ArrowDownRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { usePrefersReducedMotion } from "@/lib/use-reveal";
 import { getChart, getQuotes, type Candle, type Quote } from "@/lib/api/yahoo";
 
 const INDEX_ROWS: { symbol: string; label: string }[] = [
@@ -17,12 +18,81 @@ const WATCH_ROWS = ["RELIANCE", "TCS", "HDFCBANK", "NIFTYBEES"];
 const UP = "#2fcb80";
 const DOWN = "#ff6b52";
 
+/* Deterministic positions so SSR and client render identically. */
+const PARTICLES: { left: string; top: string; size: number; duration: string; delay: string }[] = [
+  { left: "6%", top: "22%", size: 3, duration: "7s", delay: "0s" },
+  { left: "14%", top: "70%", size: 2, duration: "9s", delay: "1.2s" },
+  { left: "30%", top: "12%", size: 2, duration: "8s", delay: "0.6s" },
+  { left: "46%", top: "82%", size: 3, duration: "10s", delay: "2s" },
+  { left: "58%", top: "30%", size: 2, duration: "7.5s", delay: "0.3s" },
+  { left: "72%", top: "64%", size: 3, duration: "8.5s", delay: "1.6s" },
+  { left: "86%", top: "18%", size: 2, duration: "9.5s", delay: "0.9s" },
+  { left: "93%", top: "48%", size: 3, duration: "7s", delay: "2.4s" },
+];
+
 const inr = (v: number) =>
   v.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** Eases a number toward each new value so price updates count smoothly. */
+function useTweened(value: number | undefined, duration = 900): number | undefined {
+  const reduced = usePrefersReducedMotion();
+  const [display, setDisplay] = useState<number | undefined>(undefined);
+  const prev = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (value === undefined) return;
+    const from = prev.current;
+    prev.current = value;
+    if (reduced || from === undefined || from === value) {
+      setDisplay(value);
+      return;
+    }
+    const start = performance.now();
+    let raf = 0;
+    const step = (t: number) => {
+      const p = Math.min(1, (t - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(from + (value - from) * eased);
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value, duration, reduced]);
+  return display;
+}
+
+/** Returns "up"/"down" for ~0.8s after a value changes, for the refresh pulse. */
+function useFlash(value: number | undefined): "up" | "down" | null {
+  const [flash, setFlash] = useState<"up" | "down" | null>(null);
+  const prev = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (value === undefined) return;
+    const from = prev.current;
+    prev.current = value;
+    if (from === undefined || from === value) return;
+    setFlash(value > from ? "up" : "down");
+    const id = setTimeout(() => setFlash(null), 820);
+    return () => clearTimeout(id);
+  }, [value]);
+  return flash;
+}
+
+function PctChip({ pct }: { pct: number }) {
+  return (
+    <span
+      className="inline-flex items-center gap-0.5 text-[13px] font-semibold tabular"
+      style={{ color: pct >= 0 ? UP : DOWN }}
+    >
+      {pct >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+      {pct >= 0 ? "+" : ""}
+      {pct.toFixed(2)}%
+    </span>
+  );
+}
 
 export function DecisionHero() {
   const [nifty, setNifty] = useState<{ quote: Quote; candles: Candle[] } | null>(null);
   const [quotes, setQuotes] = useState<Record<string, Quote>>({});
+  const [chartSettled, setChartSettled] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -43,10 +113,39 @@ export function DecisionHero() {
     };
   }, []);
 
+  // Let the line draw itself once, then pin it so 60s refreshes don't re-draw.
+  useEffect(() => {
+    if (!nifty || chartSettled) return;
+    const id = setTimeout(() => setChartSettled(true), 1800);
+    return () => clearTimeout(id);
+  }, [nifty, chartSettled]);
+
   const niftyUp = (nifty?.quote.changePct ?? 0) >= 0;
+  const niftyPrice = useTweened(nifty?.quote.price);
+  const niftyFlash = useFlash(nifty?.quote.price);
 
   return (
     <section className="relative isolate" id="product">
+      {/* Ambient data-stream particles */}
+      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+        {PARTICLES.map((p, i) => (
+          <span
+            key={i}
+            className="particle"
+            style={
+              {
+                left: p.left,
+                top: p.top,
+                width: p.size,
+                height: p.size,
+                "--particle-duration": p.duration,
+                "--particle-delay": p.delay,
+              } as React.CSSProperties
+            }
+          />
+        ))}
+      </div>
+
       <div className="mx-auto max-w-7xl px-5 pt-16 pb-20 sm:pt-20 md:pt-24">
         <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
           {/* Copy column */}
@@ -113,20 +212,15 @@ export function DecisionHero() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[12.5px] font-semibold text-white/60">NIFTY 50 · 1M</p>
-                  <p className="mt-0.5 text-[24px] font-semibold tabular tracking-tight text-white">
-                    {nifty ? inr(nifty.quote.price) : "—"}
+                  <p
+                    className={`mt-0.5 inline-block px-1 -mx-1 text-[24px] font-semibold tabular tracking-tight text-white ${
+                      niftyFlash === "up" ? "flash-up" : niftyFlash === "down" ? "flash-down" : ""
+                    }`}
+                  >
+                    {niftyPrice !== undefined ? inr(niftyPrice) : "—"}
                     {nifty && (
-                      <span
-                        className="ml-2 inline-flex items-center gap-0.5 text-[13px] font-semibold tabular"
-                        style={{ color: niftyUp ? UP : DOWN }}
-                      >
-                        {niftyUp ? (
-                          <ArrowUpRight className="h-3.5 w-3.5" />
-                        ) : (
-                          <ArrowDownRight className="h-3.5 w-3.5" />
-                        )}
-                        {nifty.quote.changePct >= 0 ? "+" : ""}
-                        {nifty.quote.changePct.toFixed(2)}%
+                      <span className="ml-2">
+                        <PctChip pct={nifty.quote.changePct} />
                       </span>
                     )}
                   </p>
@@ -156,7 +250,9 @@ export function DecisionHero() {
                         stroke={niftyUp ? UP : DOWN}
                         strokeWidth={2}
                         fill="url(#dhFill)"
-                        isAnimationActive={false}
+                        isAnimationActive={!chartSettled}
+                        animationDuration={1500}
+                        animationEasing="ease-out"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -164,7 +260,12 @@ export function DecisionHero() {
                   <div className="skeleton h-full w-full opacity-30" />
                 )}
               </div>
-              <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-(--color-brand-400)/35 bg-(--color-brand-600)/25 px-3 py-1.5 text-[12px] font-semibold text-(--color-brand-200)">
+              <span
+                className={`mt-3 inline-flex items-center gap-1.5 rounded-full border border-(--color-brand-400)/35 bg-(--color-brand-600)/25 px-3 py-1.5 text-[12px] font-semibold text-(--color-brand-200) ${
+                  nifty ? "animate-fade-up" : "opacity-0"
+                }`}
+                style={nifty ? { animationDelay: "900ms" } : undefined}
+              >
                 <Sparkles className="h-3 w-3" />
                 AI insight on every stock — ask anything
               </span>
@@ -174,31 +275,9 @@ export function DecisionHero() {
             <article className="glass-card lg:absolute lg:right-0 lg:top-10 lg:w-[230px] lg:animate-float-y-slow">
               <p className="text-[12px] font-semibold text-white/60">Markets now</p>
               <div className="mt-1">
-                {INDEX_ROWS.map((row) => {
-                  const q = quotes[row.symbol];
-                  return (
-                    <div
-                      key={row.symbol}
-                      className="flex items-baseline justify-between border-b border-white/8 py-2 last:border-b-0"
-                    >
-                      <span className="text-[11.5px] text-white/45">{row.label}</span>
-                      <span className="text-right">
-                        <span className="block text-[13px] font-semibold tabular text-white">
-                          {q ? inr(q.price) : "—"}
-                        </span>
-                        {q && (
-                          <span
-                            className="block text-[11px] font-semibold tabular"
-                            style={{ color: q.changePct >= 0 ? UP : DOWN }}
-                          >
-                            {q.changePct >= 0 ? "+" : ""}
-                            {q.changePct.toFixed(2)}%
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  );
-                })}
+                {INDEX_ROWS.map((row, i) => (
+                  <IndexRow key={row.symbol} label={row.label} quote={quotes[row.symbol]} index={i} />
+                ))}
               </div>
             </article>
 
@@ -214,23 +293,9 @@ export function DecisionHero() {
                   </tr>
                 </thead>
                 <tbody>
-                  {WATCH_ROWS.map((sym) => {
-                    const q = quotes[sym];
-                    return (
-                      <tr key={sym} className="border-t border-white/8">
-                        <td className="py-1.5 font-semibold text-white">{sym}</td>
-                        <td className="py-1.5 text-right tabular text-white/85">
-                          {q ? inr(q.price) : "—"}
-                        </td>
-                        <td
-                          className="py-1.5 text-right font-semibold tabular"
-                          style={{ color: q ? (q.changePct >= 0 ? UP : DOWN) : undefined }}
-                        >
-                          {q ? `${q.changePct >= 0 ? "+" : ""}${q.changePct.toFixed(2)}%` : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {WATCH_ROWS.map((sym, i) => (
+                    <WatchRow key={sym} symbol={sym} quote={quotes[sym]} index={i} />
+                  ))}
                 </tbody>
               </table>
             </article>
@@ -238,5 +303,58 @@ export function DecisionHero() {
         </div>
       </div>
     </section>
+  );
+}
+
+function IndexRow({ label, quote, index }: { label: string; quote?: Quote; index: number }) {
+  const price = useTweened(quote?.price);
+  const flash = useFlash(quote?.price);
+  return (
+    <div
+      className={`animate-fade-up flex items-baseline justify-between border-b border-white/8 py-2 last:border-b-0 ${
+        flash === "up" ? "flash-up" : flash === "down" ? "flash-down" : ""
+      }`}
+      style={{ animationDelay: `${450 + index * 120}ms` }}
+    >
+      <span className="text-[11.5px] text-white/45">{label}</span>
+      <span className="text-right">
+        <span className="block text-[13px] font-semibold tabular text-white">
+          {price !== undefined ? inr(price) : "—"}
+        </span>
+        {quote && (
+          <span
+            className="block text-[11px] font-semibold tabular"
+            style={{ color: quote.changePct >= 0 ? UP : DOWN }}
+          >
+            {quote.changePct >= 0 ? "+" : ""}
+            {quote.changePct.toFixed(2)}%
+          </span>
+        )}
+      </span>
+    </div>
+  );
+}
+
+function WatchRow({ symbol, quote, index }: { symbol: string; quote?: Quote; index: number }) {
+  const price = useTweened(quote?.price);
+  const flash = useFlash(quote?.price);
+  return (
+    <tr
+      className={`animate-fade-up border-t border-white/8 ${
+        flash === "up" ? "flash-up" : flash === "down" ? "flash-down" : ""
+      }`}
+      style={{ animationDelay: `${550 + index * 110}ms` }}
+    >
+      <td className="py-1.5 font-semibold text-white">{symbol}</td>
+      <td className="py-1.5 text-right tabular text-white/85">
+        {price !== undefined ? inr(price) : "—"}
+      </td>
+      <td
+        className="py-1.5 text-right font-semibold tabular"
+        style={{ color: quote ? (quote.changePct >= 0 ? UP : DOWN) : undefined }}
+      >
+        {quote ? `${quote.changePct >= 0 ? "+" : ""}${quote.changePct.toFixed(2)}%` : "—"}
+      </td>
+    </tr>
   );
 }

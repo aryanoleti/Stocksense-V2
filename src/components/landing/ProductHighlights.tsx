@@ -1,4 +1,5 @@
 import { Globe2, Sparkles, BarChart3, Lock } from "lucide-react";
+import { Reveal } from "@/components/ui/Reveal";
 
 const FEATURES = [
   {
@@ -26,7 +27,7 @@ const FEATURES = [
 export function ProductHighlights() {
   return (
     <section id="features" className="mx-auto max-w-7xl px-5 py-20">
-      <div className="max-w-xl">
+      <Reveal className="max-w-xl">
         <p className="text-[12.5px] font-bold uppercase tracking-[0.1em] text-(--color-brand-300)">
           Product highlights
         </p>
@@ -37,19 +38,18 @@ export function ProductHighlights() {
           Research depth that usually needs four different apps — with an AI layer that
           explains it all.
         </p>
-      </div>
+      </Reveal>
       <div className="mt-11 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {FEATURES.map((f) => (
-          <article
-            key={f.title}
-            className="rounded-[22px] border border-white/10 bg-white/[0.04] p-6 transition-all duration-200 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.06]"
-          >
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-(--color-brand-600)/30 text-(--color-brand-300)">
-              <f.icon className="h-[18px] w-[18px]" />
-            </span>
-            <h3 className="mt-4 text-[16px] font-semibold text-white">{f.title}</h3>
-            <p className="mt-2 text-[13.5px] leading-relaxed text-white/55">{f.body}</p>
-          </article>
+        {FEATURES.map((f, i) => (
+          <Reveal key={f.title} delay={i * 110}>
+            <article className="h-full rounded-[22px] border border-white/10 bg-white/[0.04] p-6 transition-all duration-200 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.06]">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-(--color-brand-600)/30 text-(--color-brand-300)">
+                <f.icon className="h-[18px] w-[18px]" />
+              </span>
+              <h3 className="mt-4 text-[16px] font-semibold text-white">{f.title}</h3>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-white/55">{f.body}</p>
+            </article>
+          </Reveal>
         ))}
       </div>
     </section>
