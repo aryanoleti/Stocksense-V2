@@ -9,9 +9,9 @@ import { useAuth } from "@/lib/auth/AuthContext";
 
 const links = [
   { href: "/#features", label: "Features" },
+  { href: "/#traders", label: "For traders" },
   { href: "/#stats", label: "Numbers" },
-  { href: "/#principles", label: "Principles" },
-  { href: "/#faq", label: "FAQ" },
+  { href: "/#learn", label: "Learn" },
 ];
 
 export function MarketingNav() {

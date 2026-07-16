@@ -1,41 +1,30 @@
 import { MarketingNav } from "@/components/layout/MarketingNav";
 import { LandingRedirect } from "@/components/landing/LandingRedirect";
-import { CinematicHero } from "@/components/landing/CinematicHero";
-import { TickerTape } from "@/components/landing/TickerTape";
-import { MarketPulse } from "@/components/landing/MarketPulse";
-import { FeatureCinema } from "@/components/landing/FeatureCinema";
-import { QuantEngine } from "@/components/landing/QuantEngine";
-import { StatsBand } from "@/components/landing/StatsBand";
-import { Principles } from "@/components/landing/Principles";
-import { FAQ } from "@/components/landing/FAQ";
+import { DecisionHero } from "@/components/landing/DecisionHero";
+import { ProductHighlights } from "@/components/landing/ProductHighlights";
+import { Personas } from "@/components/landing/Personas";
+import { DarkStatsBand } from "@/components/landing/DarkStatsBand";
+import { LearnTeaser } from "@/components/landing/LearnTeaser";
 import { CtaBanner } from "@/components/landing/CtaBanner";
 import { Footer } from "@/components/landing/Footer";
 
 export default function LandingPage() {
   return (
-    <main className="bg-(--color-bg)">
+    <main className="bg-(--color-brand-950)">
       <LandingRedirect />
-      {/* Dark cinematic region: nav, hero, live tape, horizontal market glide */}
+      {/* One continuous dark emerald canvas, Cirform-style */}
       <div className="gradient-brand-soft noise relative overflow-clip">
-        <div className="absolute inset-0 grid-mask pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-[620px] grid-mask pointer-events-none" />
         <div className="relative">
           <MarketingNav />
-          <CinematicHero />
-          <TickerTape />
-          <MarketPulse />
+          <DecisionHero />
+          <ProductHighlights />
+          <Personas />
+          <DarkStatsBand />
+          <LearnTeaser />
+          <CtaBanner />
         </div>
       </div>
-
-      {/* Light editorial region */}
-      <FeatureCinema />
-
-      {/* Dark centrepiece: live technical-analysis engine showing its math */}
-      <QuantEngine />
-
-      <StatsBand />
-      <Principles />
-      <FAQ />
-      <CtaBanner />
       <Footer />
     </main>
   );
