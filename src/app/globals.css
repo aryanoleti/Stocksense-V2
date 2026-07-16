@@ -175,6 +175,47 @@ body {
     background-size: 56px 56px;
     mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 75%);
   }
+
+  /* Frosted dark panel used by the landing device mocks */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    backdrop-filter: blur(6px);
+  }
+}
+
+/* ---- Landing showcase motion ---- */
+
+/* Chart line draws itself (paths must set pathLength="1") */
+.draw-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+}
+.draw-path.drawn { stroke-dashoffset: 0; }
+.draw-fill {
+  opacity: 0;
+  transition: opacity 0.8s ease 1s;
+}
+.draw-fill.drawn { opacity: 1; }
+
+/* Live-price refresh pulse */
+@keyframes flash-up {
+  0% { background-color: rgba(47, 203, 128, 0.22); }
+  100% { background-color: transparent; }
+}
+@keyframes flash-down {
+  0% { background-color: rgba(255, 107, 82, 0.22); }
+  100% { background-color: transparent; }
+}
+.flash-up { animation: flash-up 800ms ease-out; }
+.flash-down { animation: flash-down 800ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-path { stroke-dashoffset: 0; transition: none; }
+  .draw-fill { opacity: 1; transition: none; }
+  .flash-up, .flash-down { animation: none; }
 }
 
 button, a, [role="button"], input, select, textarea {
