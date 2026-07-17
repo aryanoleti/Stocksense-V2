@@ -20,7 +20,7 @@ export function MarketingNav() {
   return (
     <header className="sticky top-0 z-40 w-full">
       <div className="mx-auto max-w-7xl px-5 py-4">
-        <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-2.5 backdrop-blur-md">
+        <div className="flex items-center justify-between rounded-2xl border border-white/15 bg-[#050A1A]/80 px-4 py-2.5 backdrop-blur-md">
           <Logo tone="dark" />
           <nav className="hidden items-center gap-8 md:flex">
             {links.map((l) => (

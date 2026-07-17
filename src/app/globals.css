@@ -453,3 +453,12 @@ button, a, [role="button"], input, select, textarea {
   .cf-bar, .reveal-shown .cf-bar { animation: none; transform: none; }
   .cf-underline, .reveal-shown .cf-underline { animation: none; transform: none; }
 }
+
+/* Click-driven slide deck panels */
+.cf-slide {
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-slide { transition: none; }
+}

@@ -1,6 +1,7 @@
 import { Playfair_Display } from "next/font/google";
 import { MarketingNav } from "@/components/layout/MarketingNav";
 import { LandingRedirect } from "@/components/landing/LandingRedirect";
+import { SlideDeck, type Slide } from "@/components/landing/cirform/SlideDeck";
 import { SpeedHero } from "@/components/landing/cirform/SpeedHero";
 import { AboutReveal } from "@/components/landing/cirform/AboutReveal";
 import { NumbersSpeak } from "@/components/landing/cirform/NumbersSpeak";
@@ -18,24 +19,97 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
 });
 
+/* Every section is a full-screen slide; the visitor clicks (or uses the
+   keyboard) to move between them — the page itself never scrolls. */
+const SLIDES: Slide[] = [
+  {
+    hash: "home",
+    label: "Home",
+    tone: "dark",
+    content: <SpeedHero />,
+  },
+  {
+    hash: "about",
+    label: "About",
+    tone: "light",
+    content: (
+      <div className="flex min-h-full flex-col justify-center bg-[#E8EEFA]">
+        <AboutReveal />
+      </div>
+    ),
+  },
+  {
+    hash: "numbers",
+    label: "Numbers",
+    tone: "light",
+    content: (
+      <div className="flex min-h-full flex-col justify-center bg-white">
+        <NumbersSpeak />
+      </div>
+    ),
+  },
+  {
+    hash: "performance",
+    label: "Performance",
+    tone: "light",
+    content: (
+      <div className="min-h-full bg-white">
+        <PerformanceCta />
+      </div>
+    ),
+  },
+  {
+    hash: "features",
+    label: "Features",
+    tone: "light",
+    content: (
+      <div className="flex min-h-full flex-col justify-center bg-[#DBEAFE]">
+        <BentoFeatures />
+      </div>
+    ),
+  },
+  {
+    hash: "platform",
+    label: "Platform",
+    tone: "dark",
+    content: (
+      <div className="min-h-full bg-[#0A0C14]">
+        <MarqueeStrip />
+        <DarkFeatures />
+      </div>
+    ),
+  },
+  {
+    hash: "analytics",
+    label: "Analytics",
+    tone: "light",
+    content: (
+      <div className="flex min-h-full flex-col justify-center bg-white">
+        <AnalyticsChart />
+      </div>
+    ),
+  },
+  {
+    hash: "more",
+    label: "Get started",
+    tone: "dark",
+    content: (
+      <div className="flex min-h-full flex-col justify-end bg-[#050A1A]">
+        <Footer />
+      </div>
+    ),
+  },
+];
+
 export default function LandingPage() {
   return (
-    <main className={playfair.variable}>
+    <main className={`${playfair.variable} relative h-dvh overflow-hidden`}>
       <LandingRedirect />
-      {/* Navy hero region with the marketing nav floating on top */}
-      <div className="relative bg-[#050A1A]">
+      <SlideDeck slides={SLIDES} />
+      {/* Nav floats above every slide; links drive the deck via hash */}
+      <div className="absolute inset-x-0 top-0 z-40">
         <MarketingNav />
-        <SpeedHero />
       </div>
-
-      <AboutReveal />
-      <NumbersSpeak />
-      <PerformanceCta />
-      <BentoFeatures />
-      <MarqueeStrip />
-      <DarkFeatures />
-      <AnalyticsChart />
-      <Footer />
     </main>
   );
 }

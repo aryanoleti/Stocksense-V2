@@ -37,7 +37,7 @@ export function PerformanceCta() {
 
   return (
     <section
-      className="px-5 pb-4 pt-20 sm:pt-24"
+      className="min-h-full px-5 pb-10 pt-24 sm:pt-28"
       style={{ background: "linear-gradient(180deg, #7C3AED 0%, #8B5CF6 25%, #ffffff 65%)" }}
     >
       <div ref={ref} className={`mx-auto max-w-4xl text-center ${shown ? "reveal-shown" : ""}`}>

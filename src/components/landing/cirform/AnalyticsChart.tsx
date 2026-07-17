@@ -44,7 +44,7 @@ export function AnalyticsChart() {
   const latest = bars.length - 1;
 
   return (
-    <section id="analytics" className="bg-white px-5 py-20 sm:py-24">
+    <section className="px-5 py-20 sm:py-24">
       <div ref={ref} className={`mx-auto max-w-4xl ${shown ? "reveal-shown" : ""}`}>
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Tabs */}

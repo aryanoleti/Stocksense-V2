@@ -25,7 +25,7 @@ const LINES: {
 
 export function SpeedHero() {
   return (
-    <section className="relative flex min-h-[92vh] flex-col overflow-hidden bg-[#050A1A]">
+    <section className="relative flex min-h-full flex-col overflow-hidden bg-[#050A1A] pt-20">
       {/* Centre radial glow */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -89,7 +89,7 @@ export function SpeedHero() {
           href="#about"
           className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/70 hover:text-white"
         >
-          Scroll ↓
+          Click ↓ to explore
         </a>
         <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
         <div className="flex items-center gap-3">

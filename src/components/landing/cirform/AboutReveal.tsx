@@ -32,7 +32,7 @@ export function AboutReveal() {
   let wordIndex = 0;
 
   return (
-    <section id="about" className="bg-[#E8EEFA] px-5 py-20 sm:py-24">
+    <section className="px-5 py-20 sm:py-24">
       <div
         ref={ref}
         className={`mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-md sm:p-12 ${

@@ -16,7 +16,7 @@ export function NumbersSpeak() {
   const count = useCountUp(2678, shown, 2000);
 
   return (
-    <section id="numbers" className="bg-white px-5 py-20 sm:py-24">
+    <section className="px-5 py-20 sm:py-24">
       <div
         ref={ref}
         className={`mx-auto flex max-w-4xl flex-col items-center text-center ${

@@ -52,7 +52,7 @@ export function BentoFeatures() {
   const decPct = loaded.length ? 100 - advPct : 0;
 
   return (
-    <section id="features" className="bg-[#DBEAFE] px-5 py-16 sm:py-20">
+    <section className="px-5 py-16 pt-24 sm:py-20 sm:pt-24">
       <div
         ref={ref}
         className={`mx-auto max-w-6xl rounded-3xl bg-white/60 p-4 sm:p-6 ${
