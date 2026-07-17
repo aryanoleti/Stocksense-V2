@@ -1,41 +1,40 @@
+import { Playfair_Display } from "next/font/google";
 import { MarketingNav } from "@/components/layout/MarketingNav";
 import { LandingRedirect } from "@/components/landing/LandingRedirect";
-import { CinematicHero } from "@/components/landing/CinematicHero";
-import { TickerTape } from "@/components/landing/TickerTape";
-import { MarketPulse } from "@/components/landing/MarketPulse";
-import { FeatureCinema } from "@/components/landing/FeatureCinema";
-import { QuantEngine } from "@/components/landing/QuantEngine";
-import { StatsBand } from "@/components/landing/StatsBand";
-import { Principles } from "@/components/landing/Principles";
-import { FAQ } from "@/components/landing/FAQ";
-import { CtaBanner } from "@/components/landing/CtaBanner";
+import { SpeedHero } from "@/components/landing/cirform/SpeedHero";
+import { AboutReveal } from "@/components/landing/cirform/AboutReveal";
+import { NumbersSpeak } from "@/components/landing/cirform/NumbersSpeak";
+import { PerformanceCta } from "@/components/landing/cirform/PerformanceCta";
+import { BentoFeatures } from "@/components/landing/cirform/BentoFeatures";
+import { MarqueeStrip } from "@/components/landing/cirform/MarqueeStrip";
+import { DarkFeatures } from "@/components/landing/cirform/DarkFeatures";
+import { AnalyticsChart } from "@/components/landing/cirform/AnalyticsChart";
 import { Footer } from "@/components/landing/Footer";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  style: ["italic", "normal"],
+  weight: ["400", "500", "600"],
+  variable: "--font-playfair",
+});
 
 export default function LandingPage() {
   return (
-    <main className="bg-(--color-bg)">
+    <main className={playfair.variable}>
       <LandingRedirect />
-      {/* Dark cinematic region: nav, hero, live tape, horizontal market glide */}
-      <div className="gradient-brand-soft noise relative overflow-clip">
-        <div className="absolute inset-0 grid-mask pointer-events-none" />
-        <div className="relative">
-          <MarketingNav />
-          <CinematicHero />
-          <TickerTape />
-          <MarketPulse />
-        </div>
+      {/* Navy hero region with the marketing nav floating on top */}
+      <div className="relative bg-[#050A1A]">
+        <MarketingNav />
+        <SpeedHero />
       </div>
 
-      {/* Light editorial region */}
-      <FeatureCinema />
-
-      {/* Dark centrepiece: live technical-analysis engine showing its math */}
-      <QuantEngine />
-
-      <StatsBand />
-      <Principles />
-      <FAQ />
-      <CtaBanner />
+      <AboutReveal />
+      <NumbersSpeak />
+      <PerformanceCta />
+      <BentoFeatures />
+      <MarqueeStrip />
+      <DarkFeatures />
+      <AnalyticsChart />
       <Footer />
     </main>
   );

@@ -313,3 +313,143 @@ button, a, [role="button"], input, select, textarea {
   animation: shimmer 1.6s linear infinite;
   border-radius: var(--radius-sm);
 }
+
+/* =====================================================================
+   Cirform-style landing animations (cf-*). Scoped to the landing page;
+   scroll-gated pieces run when a `useReveal` parent gets .reveal-shown.
+   ===================================================================== */
+
+/* Hero diagonal speed lines: each line's wrapper is rotated; the inner
+   span sweeps across the viewport. */
+@keyframes cf-speed {
+  0% { transform: translateX(-130vw); opacity: 0; }
+  10% { opacity: var(--cf-op, 0.9); }
+  90% { opacity: var(--cf-op, 0.9); }
+  100% { transform: translateX(130vw); opacity: 0; }
+}
+.cf-speed {
+  position: absolute;
+  border-radius: 999px;
+  animation: cf-speed var(--cf-dur, 3s) linear var(--cf-delay, 0s) infinite;
+  will-change: transform;
+}
+
+/* Typewriter headline: width reveals in steps behind a blinking caret,
+   then the caret switches off. */
+@keyframes cf-type { from { width: 0; } to { width: var(--cf-w, 16ch); } }
+@keyframes cf-blink { 50% { border-color: transparent; } }
+@keyframes cf-caret-off { to { border-color: transparent; } }
+.cf-type {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  width: 0;
+  border-right: 3px solid rgba(255, 255, 255, 0.9);
+  animation:
+    cf-type 1.5s steps(var(--cf-steps, 16), end) 0.5s forwards,
+    cf-blink 0.75s step-end 6,
+    cf-caret-off 0.1s linear 4.6s forwards;
+}
+
+/* Word-by-word paragraph reveal (reading sweep) */
+.cf-w { display: inline-block; opacity: 0.25; }
+.reveal-shown .cf-w {
+  animation: cf-word 0.45s ease forwards;
+  animation-delay: calc(var(--cf-i) * 55ms);
+}
+@keyframes cf-word { to { opacity: 1; } }
+
+/* SVG draw-on (arc, vertical line, chart strokes): pathLength=1 */
+.cf-draw { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.reveal-shown .cf-draw { animation: cf-draw 1s ease-in-out forwards; }
+@keyframes cf-draw { to { stroke-dashoffset: 0; } }
+
+/* Dot travelling along the arc (offset-path set inline) */
+.cf-dot { offset-distance: 0%; opacity: 0; }
+.reveal-shown .cf-dot { animation: cf-travel 1.5s ease-in-out 0.25s forwards; }
+@keyframes cf-travel {
+  from { offset-distance: 0%; opacity: 1; }
+  to { offset-distance: 100%; opacity: 1; }
+}
+
+/* Big number blur-in */
+.cf-blur { filter: blur(12px); opacity: 0; transform: scale(0.8); }
+.reveal-shown .cf-blur { animation: cf-blur-in 0.9s ease forwards; }
+@keyframes cf-blur-in { to { filter: blur(0); opacity: 1; transform: scale(1); } }
+
+/* Clipped line-by-line slide-up reveal */
+.cf-clip { overflow: hidden; }
+.cf-line { display: block; transform: translateY(110%); opacity: 0; }
+.reveal-shown .cf-line {
+  animation: cf-line-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--cf-d, 0s) forwards;
+}
+@keyframes cf-line-up { to { transform: translateY(0); opacity: 1; } }
+
+/* Generic fade-up + card entries, scroll-gated with per-item delays */
+.cf-item { opacity: 0; transform: translateY(16px); }
+.reveal-shown .cf-item {
+  animation: cf-item-in 0.55s ease var(--cf-d, 0s) forwards;
+}
+@keyframes cf-item-in { to { opacity: 1; transform: translateY(0); } }
+
+.cf-card { opacity: 0; transform: translateY(30px) scale(0.96); }
+.reveal-shown .cf-card {
+  animation: cf-card-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--cf-d, 0s) forwards;
+}
+@keyframes cf-card-in { to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.cf-entry { opacity: 0; transform: translateY(60px) scale(0.97); }
+.reveal-shown .cf-entry {
+  animation: cf-entry-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+}
+@keyframes cf-entry-in { to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* Looping "slide in from the right" pill */
+@keyframes cf-pill {
+  0%, 50% { transform: translateX(130%); opacity: 0; }
+  62%, 90% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(130%); opacity: 0; }
+}
+.cf-pill { animation: cf-pill 4s ease-in-out 1s infinite; }
+
+/* Bar chart bars grow from the baseline */
+.cf-bar { transform: scaleY(0); transform-origin: bottom; }
+.reveal-shown .cf-bar {
+  animation: cf-bar-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--cf-d, 0s) forwards;
+}
+@keyframes cf-bar-up { to { transform: scaleY(1); } }
+
+/* Tab underline sweep */
+.cf-underline { transform: scaleX(0); transform-origin: left; }
+.reveal-shown .cf-underline {
+  animation: cf-underline-in 0.4s ease 0.3s forwards;
+}
+@keyframes cf-underline-in { to { transform: scaleX(1); } }
+
+/* Serif italic accent face for the landing */
+.cf-serif {
+  font-family: var(--font-playfair), "Georgia", serif;
+  font-style: italic;
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-speed { animation: none; opacity: 0.35; }
+  .cf-type {
+    animation: none;
+    width: var(--cf-w, auto);
+    border-right-color: transparent;
+  }
+  .cf-w, .reveal-shown .cf-w { animation: none; opacity: 1; }
+  .cf-draw, .reveal-shown .cf-draw { animation: none; stroke-dashoffset: 0; }
+  .cf-dot, .reveal-shown .cf-dot { animation: none; offset-distance: 100%; opacity: 1; }
+  .cf-blur, .reveal-shown .cf-blur { animation: none; filter: none; opacity: 1; transform: none; }
+  .cf-line, .reveal-shown .cf-line { animation: none; transform: none; opacity: 1; }
+  .cf-item, .reveal-shown .cf-item { animation: none; transform: none; opacity: 1; }
+  .cf-card, .reveal-shown .cf-card { animation: none; transform: none; opacity: 1; }
+  .cf-entry, .reveal-shown .cf-entry { animation: none; transform: none; opacity: 1; }
+  .cf-pill { animation: none; transform: none; opacity: 1; }
+  .cf-bar, .reveal-shown .cf-bar { animation: none; transform: none; }
+  .cf-underline, .reveal-shown .cf-underline { animation: none; transform: none; }
+}
