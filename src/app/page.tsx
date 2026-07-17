@@ -1,32 +1,41 @@
 import { MarketingNav } from "@/components/layout/MarketingNav";
 import { LandingRedirect } from "@/components/landing/LandingRedirect";
-import { DeviceShowcase } from "@/components/landing/showcase/DeviceShowcase";
+import { CinematicHero } from "@/components/landing/CinematicHero";
+import { TickerTape } from "@/components/landing/TickerTape";
 import { MarketPulse } from "@/components/landing/MarketPulse";
-import { FeatureJourney } from "@/components/landing/showcase/FeatureJourney";
-import { ParticleCta } from "@/components/landing/showcase/ParticleCta";
+import { FeatureCinema } from "@/components/landing/FeatureCinema";
+import { QuantEngine } from "@/components/landing/QuantEngine";
+import { StatsBand } from "@/components/landing/StatsBand";
+import { Principles } from "@/components/landing/Principles";
+import { FAQ } from "@/components/landing/FAQ";
+import { CtaBanner } from "@/components/landing/CtaBanner";
 import { Footer } from "@/components/landing/Footer";
 
 export default function LandingPage() {
   return (
-    <main className="bg-(--color-brand-950)">
+    <main className="bg-(--color-bg)">
       <LandingRedirect />
-      {/* One continuous dark canvas: the whole page plays like a product video */}
+      {/* Dark cinematic region: nav, hero, live tape, horizontal market glide */}
       <div className="gradient-brand-soft noise relative overflow-clip">
-        <div className="absolute inset-x-0 top-0 h-[640px] grid-mask pointer-events-none" />
+        <div className="absolute inset-0 grid-mask pointer-events-none" />
         <div className="relative">
           <MarketingNav />
-          {/* HeroScene + InteractionScene: live dual-device demo */}
-          <DeviceShowcase />
-          {/* The ball: draggable market-breadth globe */}
-          <div id="pulse">
-            <MarketPulse />
-          </div>
-          {/* ScrollScene: staggered feature journey */}
-          <FeatureJourney />
-          {/* Finale: mouse-reactive particle CTA */}
-          <ParticleCta />
+          <CinematicHero />
+          <TickerTape />
+          <MarketPulse />
         </div>
       </div>
+
+      {/* Light editorial region */}
+      <FeatureCinema />
+
+      {/* Dark centrepiece: live technical-analysis engine showing its math */}
+      <QuantEngine />
+
+      <StatsBand />
+      <Principles />
+      <FAQ />
+      <CtaBanner />
       <Footer />
     </main>
   );

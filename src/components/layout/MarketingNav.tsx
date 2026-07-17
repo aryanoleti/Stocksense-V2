@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth/AuthContext";
 
 const links = [
-  { href: "/#showcase", label: "Live demo" },
-  { href: "/#pulse", label: "Market pulse" },
   { href: "/#features", label: "Features" },
-  { href: "/#cta", label: "Get started" },
+  { href: "/#stats", label: "Numbers" },
+  { href: "/#principles", label: "Principles" },
+  { href: "/#faq", label: "FAQ" },
 ];
 
 export function MarketingNav() {
