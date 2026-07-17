@@ -80,15 +80,22 @@ export function useCountUp(to: number, start: boolean, duration = 1800) {
       return;
     }
     let raf = 0;
+    let finished = false;
     const t0 = performance.now();
     const ease = (t: number) => 1 - Math.pow(1 - t, 5);
     function frame(now: number) {
       const t = Math.min(1, (now - t0) / duration);
       setVal(to * ease(t));
       if (t < 1) raf = requestAnimationFrame(frame);
+      else finished = true;
     }
     raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      // If interrupted mid-count (e.g. StrictMode's dev double-run), allow a
+      // later effect run to restart instead of freezing at a partial value.
+      if (!finished) done.current = false;
+    };
   }, [start, to, duration]);
 
   return val;
