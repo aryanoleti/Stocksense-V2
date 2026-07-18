@@ -37,8 +37,7 @@ export function PerformanceCta() {
 
   return (
     <section
-      className="relative min-h-full overflow-hidden px-5 pb-10 pt-24 sm:pt-28"
-      style={{ background: "linear-gradient(180deg, #7C3AED 0%, #8B5CF6 25%, #ffffff 65%)" }}
+      className="cf-perf-bg relative min-h-full overflow-hidden px-5 pb-10 pt-24 sm:pt-28"
     >
       {/* Drifting glow orbs in the purple header */}
       <div
@@ -72,13 +71,13 @@ export function PerformanceCta() {
 
         {/* Live dashboard card (entry animation outside, gentle float inside) */}
         <div className="cf-entry mx-auto mt-12 max-w-2xl">
-          <div className="cf-bob rounded-3xl border border-black/5 bg-white p-6 text-left shadow-[0_40px_80px_-32px_rgba(23,37,84,0.35)] sm:p-8">
+          <div className="cf-bob rounded-3xl border border-black/5 bg-white p-6 text-left shadow-[0_40px_80px_-32px_rgba(23,37,84,0.35)] dark:border-white/10 dark:bg-[#111827] sm:p-8">
           <div className="flex items-baseline justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-gray-400">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-gray-400 dark:text-gray-500">
                 NIFTY 50 · 1 month · live
               </p>
-              <p className="mt-1 text-[30px] font-bold tabular tracking-tight text-[#1F2937]">
+              <p className="mt-1 text-[30px] font-bold tabular tracking-tight text-[#1F2937] dark:text-white">
                 {q ? inr(q.price) : "—"}
                 {q && (
                   <span
@@ -96,7 +95,7 @@ export function PerformanceCta() {
                 )}
               </p>
             </div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#DBEAFE] px-2.5 py-1 text-[11px] font-semibold text-[#1A56DB]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#DBEAFE] px-2.5 py-1 text-[11px] font-semibold text-[#1A56DB] dark:bg-[#1A56DB]/25 dark:text-[#93C5FD]">
               <span className="h-1.5 w-1.5 rounded-full bg-[#1A56DB] animate-pulse-dot" />
               Live
             </span>
@@ -108,7 +107,7 @@ export function PerformanceCta() {
             className="mt-4 h-36 cursor-crosshair"
             tooltip
           />
-          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-gray-100 pt-4 text-center">
+          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-gray-100 pt-4 text-center dark:border-white/10">
             <CardStat label="Day high" value={q?.dayHigh !== undefined ? inr(q.dayHigh) : "—"} />
             <CardStat label="Day low" value={q?.dayLow !== undefined ? inr(q.dayLow) : "—"} />
             <CardStat label="Prev close" value={q ? inr(q.previousClose) : "—"} />
@@ -123,8 +122,8 @@ export function PerformanceCta() {
 function CardStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400">{label}</p>
-      <p className="mt-0.5 text-[14px] font-semibold tabular text-[#1F2937]">{value}</p>
+      <p className="text-[10px] uppercase tracking-[0.12em] text-gray-400 dark:text-gray-500">{label}</p>
+      <p className="mt-0.5 text-[14px] font-semibold tabular text-[#1F2937] dark:text-white">{value}</p>
     </div>
   );
 }

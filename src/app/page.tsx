@@ -33,7 +33,7 @@ const SLIDES: Slide[] = [
     label: "About",
     tone: "light",
     content: (
-      <div className="flex min-h-full flex-col justify-center bg-[#E8EEFA]">
+      <div className="flex min-h-full flex-col justify-center bg-[#E8EEFA] dark:bg-[#0B1220]">
         <AboutReveal />
       </div>
     ),
@@ -43,7 +43,7 @@ const SLIDES: Slide[] = [
     label: "Numbers",
     tone: "light",
     content: (
-      <div className="flex min-h-full flex-col justify-center bg-white">
+      <div className="flex min-h-full flex-col justify-center bg-white dark:bg-[#0A0F1E]">
         <NumbersSpeak />
       </div>
     ),
@@ -53,7 +53,7 @@ const SLIDES: Slide[] = [
     label: "Performance",
     tone: "light",
     content: (
-      <div className="min-h-full bg-white">
+      <div className="min-h-full bg-white dark:bg-[#0A0F1E]">
         <PerformanceCta />
       </div>
     ),
@@ -63,7 +63,7 @@ const SLIDES: Slide[] = [
     label: "Features",
     tone: "light",
     content: (
-      <div className="flex min-h-full flex-col justify-center bg-[#DBEAFE]">
+      <div className="flex min-h-full flex-col justify-center bg-[#DBEAFE] dark:bg-[#0B1428]">
         <BentoFeatures />
       </div>
     ),
@@ -84,7 +84,7 @@ const SLIDES: Slide[] = [
     label: "Analytics",
     tone: "light",
     content: (
-      <div className="flex min-h-full flex-col justify-center bg-white">
+      <div className="flex min-h-full flex-col justify-center bg-white dark:bg-[#0A0F1E]">
         <AnalyticsChart />
       </div>
     ),

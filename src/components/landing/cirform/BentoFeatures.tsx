@@ -23,9 +23,9 @@ const BREADTH_SAMPLE = [
 ];
 
 const FEATURE_ITEMS = [
-  { icon: Database, label: "Live NSE data", cls: "text-[#1F2937]" },
+  { icon: Database, label: "Live NSE data", cls: "text-[#1F2937] dark:text-gray-200" },
   { icon: Landmark, label: "AI research copilot", cls: "font-bold text-[#3B82F6]" },
-  { icon: Zap, label: "0.5s fastest refresh", cls: "text-[#1F2937]" },
+  { icon: Zap, label: "0.5s fastest refresh", cls: "text-[#1F2937] dark:text-gray-200" },
 ];
 
 export function BentoFeatures() {
@@ -60,20 +60,20 @@ export function BentoFeatures() {
       />
       <div
         ref={ref}
-        className={`relative mx-auto max-w-6xl rounded-3xl bg-white/60 p-4 sm:p-6 ${
+        className={`relative mx-auto max-w-6xl rounded-3xl bg-white/60 p-4 dark:bg-white/5 sm:p-6 ${
           shown ? "reveal-shown" : ""
         }`}
       >
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Card 1 — feature list */}
-          <article className="cf-card rounded-2xl bg-white p-7 shadow-sm" style={{ "--cf-d": "0s" } as React.CSSProperties}>
+          <article className="cf-card rounded-2xl bg-white p-7 shadow-sm dark:bg-[#111827]" style={{ "--cf-d": "0s" } as React.CSSProperties}>
             <div className="flex items-center gap-2.5">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-[#DBEAFE] text-[13px] font-bold text-[#1A56DB]">
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-[#DBEAFE] text-[13px] font-bold text-[#1A56DB] dark:bg-[#1A56DB]/25 dark:text-[#93C5FD]">
                 You
               </span>
-              <span className="text-[12px] font-medium text-gray-400">Your research desk</span>
+              <span className="text-[12px] font-medium text-gray-400 dark:text-gray-500">Your research desk</span>
             </div>
-            <h3 className="mt-5 text-[24px] font-bold leading-tight tracking-tight text-[#1F2937]">
+            <h3 className="mt-5 text-[24px] font-bold leading-tight tracking-tight text-[#1F2937] dark:text-white">
               Smarter <span className="cf-serif text-[#1A56DB]">market research</span>
             </h3>
             <ul className="mt-6 flex flex-col gap-4">
@@ -83,7 +83,7 @@ export function BentoFeatures() {
                   className="cf-item flex items-center gap-3"
                   style={{ "--cf-d": `${0.3 + i * 0.1}s` } as React.CSSProperties}
                 >
-                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#EFF6FF] text-[#3B82F6]">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#EFF6FF] text-[#3B82F6] dark:bg-[#1A56DB]/20">
                     <f.icon className="h-4 w-4" />
                   </span>
                   <span className={`text-[15px] ${f.cls}`}>{f.label}</span>
@@ -93,8 +93,8 @@ export function BentoFeatures() {
           </article>
 
           {/* Card 2 — live market breadth bars */}
-          <article className="cf-card rounded-2xl bg-white p-7 shadow-sm" style={{ "--cf-d": "0.1s" } as React.CSSProperties}>
-            <p className="text-[12px] font-medium text-gray-400">Right now</p>
+          <article className="cf-card rounded-2xl bg-white p-7 shadow-sm dark:bg-[#111827]" style={{ "--cf-d": "0.1s" } as React.CSSProperties}>
+            <p className="text-[12px] font-medium text-gray-400 dark:text-gray-500">Right now</p>
             <div className="mt-5 flex flex-col gap-4">
               <BreadthBar
                 label="Advancing"
@@ -109,17 +109,17 @@ export function BentoFeatures() {
                 shown={shown}
               />
             </div>
-            <p className="mt-2 text-[11px] text-gray-400">
+            <p className="mt-2 text-[11px] text-gray-400 dark:text-gray-500">
               Live breadth of {BREADTH_SAMPLE.length} NSE large caps
             </p>
             <p
-              className="cf-item mt-6 text-[18px] font-semibold text-[#1F2937]"
+              className="cf-item mt-6 text-[18px] font-semibold text-[#1F2937] dark:text-white"
               style={{ "--cf-d": "0.5s" } as React.CSSProperties}
             >
               Signals over noise
             </p>
             <p
-              className="cf-item mt-1.5 text-[13.5px] leading-relaxed text-gray-500"
+              className="cf-item mt-1.5 text-[13.5px] leading-relaxed text-gray-500 dark:text-gray-400"
               style={{ "--cf-d": "0.8s" } as React.CSSProperties}
             >
               Every number on this page is live from the exchange — the same data layer
@@ -129,8 +129,8 @@ export function BentoFeatures() {
 
           {/* Card 3 — two stacked cards */}
           <div className="flex flex-col gap-4">
-            <article className="cf-card rounded-2xl bg-white p-7 shadow-sm" style={{ "--cf-d": "0.2s" } as React.CSSProperties}>
-              <h3 className="text-[20px] font-bold leading-snug tracking-tight text-[#1F2937]">
+            <article className="cf-card rounded-2xl bg-white p-7 shadow-sm dark:bg-[#111827]" style={{ "--cf-d": "0.2s" } as React.CSSProperties}>
+              <h3 className="text-[20px] font-bold leading-snug tracking-tight text-[#1F2937] dark:text-white">
                 Empower <span className="cf-serif text-[#7C3AED]">smarter</span> investing
                 decisions
               </h3>
@@ -192,12 +192,12 @@ function BreadthBar({
   return (
     <div>
       <div className="flex items-baseline justify-between">
-        <span className="text-[13px] font-medium text-[#1F2937]">{label}</span>
-        <span className="text-[12px] font-semibold tabular text-gray-500">
+        <span className="text-[13px] font-medium text-[#1F2937] dark:text-gray-200">{label}</span>
+        <span className="text-[12px] font-semibold tabular text-gray-500 dark:text-gray-400">
           {pct !== null ? `${pct}%` : "—"}
         </span>
       </div>
-      <div className="mt-1.5 h-3.5 overflow-hidden rounded-full bg-[#EFF6FF]">
+      <div className="mt-1.5 h-3.5 overflow-hidden rounded-full bg-[#EFF6FF] dark:bg-white/10">
         <div
           className={`h-full rounded-full transition-[width] duration-1000 ease-out ${
             filled ? "bg-[#1A56DB]" : "bg-[#93C5FD]"

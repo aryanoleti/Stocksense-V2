@@ -14,16 +14,16 @@ type Segment = { text: string; className: string };
 const SEGMENTS: Segment[] = [
   {
     text: "We believe stock research should be calm, visual,",
-    className: "cf-serif text-[#4B5563]",
+    className: "cf-serif text-[#4B5563] dark:text-[#B4BCCC]",
   },
-  { text: "and honest.", className: "text-[#1F2937]" },
+  { text: "and honest.", className: "text-[#1F2937] dark:text-[#E5E9F0]" },
   {
     text: "StockSense turns live NSE data",
     className: "font-bold text-[#3B82F6]",
   },
   {
     text: "into plain-language understanding — AI summaries, quant signals that show their working, and a simulator where practice costs nothing but time.",
-    className: "text-[#1F2937]",
+    className: "text-[#1F2937] dark:text-[#E5E9F0]",
   },
 ];
 
@@ -44,7 +44,7 @@ export function AboutReveal() {
       />
       <div
         ref={ref}
-        className={`relative mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-md sm:p-12 ${
+        className={`relative mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-md dark:bg-[#111827] dark:shadow-black/40 sm:p-12 ${
           shown ? "reveal-shown" : ""
         }`}
       >

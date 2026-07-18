@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronUp, ChevronDown } from "lucide-react";
 
 /*
  * Full-screen pager: sections are stacked slides moved with a smooth
@@ -23,7 +22,18 @@ const GLIDE_MS = 900;
 
 export function SlideDeck({ slides }: { slides: Slide[] }) {
   const [index, setIndex] = useState(0);
+  const [isDark, setIsDark] = useState(false);
   const indexRef = useRef(0);
+
+  // Track the root .dark class so the rail chrome follows theme changes.
+  useEffect(() => {
+    const el = document.documentElement;
+    const update = () => setIsDark(el.classList.contains("dark"));
+    update();
+    const mo = new MutationObserver(update);
+    mo.observe(el, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+  }, []);
   const wrapRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLElement | null)[]>([]);
   const lockedUntil = useRef(0);
@@ -136,14 +146,12 @@ export function SlideDeck({ slides }: { slides: Slide[] }) {
     go(indexRef.current + dir);
   };
 
-  const tone = slides[index].tone;
+  // In dark theme every slide surface is dark, so the rail always needs
+  // light chrome; otherwise it follows the active slide's own tone.
+  const tone = isDark ? "dark" : slides[index].tone;
   const railText = tone === "dark" ? "text-white" : "text-[#111827]";
   const railDim = tone === "dark" ? "bg-white/30" : "bg-[#111827]/25";
   const railActive = tone === "dark" ? "bg-white" : "bg-[#1A56DB]";
-  const btnCls =
-    tone === "dark"
-      ? "border-white/25 bg-white/10 text-white hover:bg-white/20"
-      : "border-[#111827]/15 bg-white text-[#111827] shadow-md hover:bg-[#EFF6FF]";
 
   return (
     <div
@@ -167,10 +175,10 @@ export function SlideDeck({ slides }: { slides: Slide[] }) {
         </section>
       ))}
 
-      {/* Dot rail */}
+      {/* Dot rail — the primary click navigation on every screen size */}
       <nav
         aria-label="Sections"
-        className="absolute right-4 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-end gap-3 sm:flex"
+        className="absolute right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-end gap-3 sm:right-4"
       >
         {slides.map((s, i) => (
           <button
@@ -196,28 +204,6 @@ export function SlideDeck({ slides }: { slides: Slide[] }) {
           </button>
         ))}
       </nav>
-
-      {/* Prev / next buttons */}
-      <div className="absolute bottom-5 right-4 z-40 flex flex-col gap-2 sm:right-6">
-        <button
-          type="button"
-          onClick={() => go(index - 1)}
-          disabled={index === 0}
-          aria-label="Previous section"
-          className={`grid h-11 w-11 place-items-center rounded-full border backdrop-blur transition-all disabled:pointer-events-none disabled:opacity-30 ${btnCls}`}
-        >
-          <ChevronUp className="h-5 w-5" />
-        </button>
-        <button
-          type="button"
-          onClick={() => go(index + 1)}
-          disabled={index === slides.length - 1}
-          aria-label="Next section"
-          className={`grid h-11 w-11 place-items-center rounded-full border backdrop-blur transition-all disabled:pointer-events-none disabled:opacity-30 ${btnCls}`}
-        >
-          <ChevronDown className="h-5 w-5" />
-        </button>
-      </div>
 
       {/* Progress */}
       <span

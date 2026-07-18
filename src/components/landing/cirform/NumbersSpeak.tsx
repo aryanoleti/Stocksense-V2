@@ -52,7 +52,7 @@ export function NumbersSpeak() {
         }`}
       >
         {/* Pill badge */}
-        <span className="cf-item rounded-full border border-gray-200 bg-gray-50 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+        <span className="cf-item rounded-full border border-gray-200 bg-gray-50 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500 dark:border-white/15 dark:bg-white/5 dark:text-gray-400">
           The numbers speak
         </span>
 
@@ -149,8 +149,8 @@ export function NumbersSpeak() {
               <span
                 className={`block h-2 rounded-full transition-all duration-300 ${
                   panel === i
-                    ? "w-5 bg-[#1A56DB]"
-                    : "w-2 bg-gray-300 group-hover:bg-gray-400"
+                    ? "w-5 bg-[#1A56DB] dark:bg-[#60A5FA]"
+                    : "w-2 bg-gray-300 group-hover:bg-gray-400 dark:bg-white/25 dark:group-hover:bg-white/40"
                 }`}
               />
             </button>
@@ -183,7 +183,7 @@ function StatPanel({
         <span className="tabular">{panel.format(count)}</span>
       </p>
       <p
-        className="cf-item mt-2 text-[14px] text-gray-500"
+        className="cf-item mt-2 text-[14px] text-gray-500 dark:text-gray-400"
         style={{ "--cf-d": "1.2s" } as React.CSSProperties}
       >
         {panel.label}

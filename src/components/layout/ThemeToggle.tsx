@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { cn } from "@/lib/cn";
 
 const KEY = "stocksense.theme";
 
@@ -10,7 +11,7 @@ const KEY = "stocksense.theme";
  * script in the layout (system preference is the default), so this component
  * only needs to read the current state and toggle it.
  */
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const [dark, setDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -34,7 +35,10 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      className="grid h-10 w-10 place-items-center rounded-xl border border-(--color-border) bg-(--color-surface) text-(--color-fg-muted) hover:bg-(--color-surface-2)"
+      className={cn(
+        "grid h-10 w-10 place-items-center rounded-xl border border-(--color-border) bg-(--color-surface) text-(--color-fg-muted) hover:bg-(--color-surface-2)",
+        className,
+      )}
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       title={dark ? "Light mode" : "Dark mode"}
     >

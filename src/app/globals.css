@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: `dark:` utilities follow the root .dark class
+   (set by ThemeToggle / the pre-paint init script), not the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   /* Surfaces */
   --color-bg: #fbfcfb;
@@ -497,3 +501,8 @@ button, a, [role="button"], input, select, textarea {
   .cf-blob, .cf-blob-2, .cf-bob, .cf-spin-slow, .cf-glow { animation: none; }
   .cf-hslide { transition: none; }
 }
+
+/* Performance section gradient: purple crown fading into the surface —
+   the surface end follows the theme so the palette barely shifts. */
+.cf-perf-bg { background: linear-gradient(180deg, #7C3AED 0%, #8B5CF6 25%, #ffffff 65%); }
+.dark .cf-perf-bg { background: linear-gradient(180deg, #7C3AED 0%, #8B5CF6 25%, #0A0F1E 65%); }

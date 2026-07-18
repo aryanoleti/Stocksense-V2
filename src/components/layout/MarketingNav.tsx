@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth/AuthContext";
 
@@ -34,6 +35,7 @@ export function MarketingNav() {
             ))}
           </nav>
           <div className="hidden items-center gap-2 md:flex">
+            <ThemeToggle className="h-9 w-9 border-white/20 bg-white/10 text-white hover:bg-white/20" />
             {user ? (
               <Button href="/dashboard" size="sm" className="bg-white text-(--color-brand-900) hover:bg-white/90 shadow-none">
                 Open dashboard
@@ -73,6 +75,7 @@ export function MarketingNav() {
                 </Link>
               ))}
               <div className="flex gap-2 pt-2">
+                <ThemeToggle className="h-9 w-9 shrink-0 border-white/20 bg-white/10 text-white hover:bg-white/20" />
                 {user ? (
                   <Button href="/dashboard" size="sm" className="w-full bg-white text-(--color-brand-900) shadow-none">
                     Open dashboard

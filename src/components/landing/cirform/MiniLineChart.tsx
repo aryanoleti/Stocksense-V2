@@ -113,21 +113,21 @@ export function MiniLineChart({
             style={{ left: `${hPt.x}%`, top: `${(hPt.y / H) * 100}%`, background: stroke }}
           />
           <div
-            className="pointer-events-none absolute z-10 rounded-xl border border-black/10 bg-white px-3 py-2 text-left shadow-xl"
+            className="pointer-events-none absolute z-10 rounded-xl border border-black/10 bg-white px-3 py-2 text-left shadow-xl dark:border-white/15 dark:bg-[#111827]"
             style={{
               left: `min(max(${hPt.x}%, 14%), 82%)`,
               top: `${(hPt.y / H) * 100}%`,
               transform: "translate(-50%, -130%)",
             }}
           >
-            <p className="whitespace-nowrap text-[10.5px] font-medium text-black/45">
+            <p className="whitespace-nowrap text-[10.5px] font-medium text-black/45 dark:text-white/50">
               {new Date(h.time).toLocaleDateString("en-IN", {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
               })}
             </p>
-            <p className="whitespace-nowrap text-[13px] font-semibold tabular text-[#1F2937]">
+            <p className="whitespace-nowrap text-[13px] font-semibold tabular text-[#1F2937] dark:text-white">
               ₹{inr(h.price)}
             </p>
             {hPct !== null && (

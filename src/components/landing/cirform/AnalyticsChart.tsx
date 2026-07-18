@@ -49,20 +49,20 @@ export function AnalyticsChart() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Tabs */}
           <div className="flex items-center gap-6">
-            <button type="button" className="relative pb-1.5 text-[14.5px] font-semibold text-[#1F2937]">
+            <button type="button" className="relative pb-1.5 text-[14.5px] font-semibold text-[#1F2937] dark:text-white">
               Analytics
               <span className="cf-underline absolute inset-x-0 bottom-0 h-[2.5px] rounded-full bg-[#1A56DB]" />
             </button>
             <Link
               href="/quant"
-              className="cf-item pb-1.5 text-[14.5px] font-medium text-gray-400 hover:text-[#1F2937]"
+              className="cf-item pb-1.5 text-[14.5px] font-medium text-gray-400 hover:text-[#1F2937] dark:text-gray-500 dark:hover:text-white"
               style={{ "--cf-d": "0.1s" } as React.CSSProperties}
             >
               Momentum
             </Link>
             <Link
               href="/quant"
-              className="cf-item pb-1.5 text-[14.5px] font-medium text-gray-400 hover:text-[#1F2937]"
+              className="cf-item pb-1.5 text-[14.5px] font-medium text-gray-400 hover:text-[#1F2937] dark:text-gray-500 dark:hover:text-white"
               style={{ "--cf-d": "0.18s" } as React.CSSProperties}
             >
               Success rates
@@ -70,7 +70,7 @@ export function AnalyticsChart() {
           </div>
           {/* Range chip */}
           <span
-            className="cf-item inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-3.5 py-1.5 text-[12.5px] font-medium text-gray-600"
+            className="cf-item inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-3.5 py-1.5 text-[12.5px] font-medium text-gray-600 dark:border-white/15 dark:text-gray-300"
             style={{ "--cf-d": "0.25s" } as React.CSSProperties}
           >
             NIFTY 50 · Monthly <ChevronDown className="h-3.5 w-3.5" />
@@ -87,7 +87,7 @@ export function AnalyticsChart() {
                     className={`cf-bar w-full rounded-t-lg ${
                       i === latest
                         ? "cf-glow bg-[#3B82F6]"
-                        : "bg-[#BFDBFE] group-hover:bg-[#93C5FD]"
+                        : "bg-[#BFDBFE] group-hover:bg-[#93C5FD] dark:bg-[#1E3A8A] dark:group-hover:bg-[#27459E]"
                     }`}
                     style={
                       { height: `${(b.h / 100) * 224}px`, "--cf-d": `${i * 0.06}s` } as React.CSSProperties
@@ -108,7 +108,9 @@ export function AnalyticsChart() {
                 <span
                   key={b.time}
                   className={`flex-1 text-center text-[10.5px] ${
-                    i === latest ? "font-bold text-[#1A56DB]" : "text-gray-400"
+                    i === latest
+                      ? "font-bold text-[#1A56DB] dark:text-[#60A5FA]"
+                      : "text-gray-400 dark:text-gray-500"
                   }`}
                 >
                   {b.month}
