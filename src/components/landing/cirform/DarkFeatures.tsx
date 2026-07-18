@@ -50,8 +50,17 @@ export function DarkFeatures() {
     .slice(0, 3);
 
   return (
-    <section className="bg-[#0A0C14] px-5 py-20 sm:py-24">
-      <div ref={ref} className={`mx-auto max-w-6xl ${shown ? "reveal-shown" : ""}`}>
+    <section className="relative overflow-hidden bg-[#0A0C14] px-5 py-20 sm:py-24">
+      {/* Drifting glow orbs in the dark canvas */}
+      <div
+        className="cf-blob pointer-events-none absolute -left-28 top-1/4 h-96 w-96 rounded-full bg-[#1A56DB]/15 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="cf-blob-2 pointer-events-none absolute -right-24 bottom-1/4 h-80 w-80 rounded-full bg-[#7C3AED]/15 blur-3xl"
+        aria-hidden="true"
+      />
+      <div ref={ref} className={`relative mx-auto max-w-6xl ${shown ? "reveal-shown" : ""}`}>
         <div className="grid gap-4 lg:grid-cols-2">
           {/* Card 1 — simulator (blue gradient) */}
           <article

@@ -37,9 +37,18 @@ export function PerformanceCta() {
 
   return (
     <section
-      className="min-h-full px-5 pb-10 pt-24 sm:pt-28"
+      className="relative min-h-full overflow-hidden px-5 pb-10 pt-24 sm:pt-28"
       style={{ background: "linear-gradient(180deg, #7C3AED 0%, #8B5CF6 25%, #ffffff 65%)" }}
     >
+      {/* Drifting glow orbs in the purple header */}
+      <div
+        className="cf-blob pointer-events-none absolute -left-16 top-10 h-64 w-64 rounded-full bg-white/15 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="cf-blob-2 pointer-events-none absolute right-[-60px] top-24 h-72 w-72 rounded-full bg-[#06B6D4]/20 blur-3xl"
+        aria-hidden="true"
+      />
       <div ref={ref} className={`mx-auto max-w-4xl text-center ${shown ? "reveal-shown" : ""}`}>
         <h2 className="text-[34px] font-bold leading-[1.12] tracking-[-0.02em] text-white sm:text-[52px]">
           <span className="cf-clip block">
@@ -61,8 +70,9 @@ export function PerformanceCta() {
           explained in plain language, refreshed as fast as every half second.
         </p>
 
-        {/* Live dashboard card */}
-        <div className="cf-entry mx-auto mt-12 max-w-2xl rounded-3xl border border-black/5 bg-white p-6 text-left shadow-[0_40px_80px_-32px_rgba(23,37,84,0.35)] sm:p-8">
+        {/* Live dashboard card (entry animation outside, gentle float inside) */}
+        <div className="cf-entry mx-auto mt-12 max-w-2xl">
+          <div className="cf-bob rounded-3xl border border-black/5 bg-white p-6 text-left shadow-[0_40px_80px_-32px_rgba(23,37,84,0.35)] sm:p-8">
           <div className="flex items-baseline justify-between">
             <div>
               <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-gray-400">
@@ -102,6 +112,7 @@ export function PerformanceCta() {
             <CardStat label="Day high" value={q?.dayHigh !== undefined ? inr(q.dayHigh) : "—"} />
             <CardStat label="Day low" value={q?.dayLow !== undefined ? inr(q.dayLow) : "—"} />
             <CardStat label="Prev close" value={q ? inr(q.previousClose) : "—"} />
+          </div>
           </div>
         </div>
       </div>

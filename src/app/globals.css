@@ -462,3 +462,38 @@ button, a, [role="button"], input, select, textarea {
 @media (prefers-reduced-motion: reduce) {
   .cf-slide { transition: none; }
 }
+
+/* Ambient landing motion: drifting gradient blobs, gentle bobbing,
+   slow-rotating dashed ring, glowing highlight bar, horizontal panels */
+@keyframes cf-blob {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(26px, -32px, 0) scale(1.08); }
+}
+.cf-blob { animation: cf-blob 12s ease-in-out infinite; will-change: transform; }
+.cf-blob-2 { animation: cf-blob 16s ease-in-out 2s infinite reverse; will-change: transform; }
+
+@keyframes cf-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.cf-bob { animation: cf-bob 7s ease-in-out infinite; }
+
+@keyframes cf-spin { to { transform: rotate(360deg); } }
+.cf-spin-slow {
+  animation: cf-spin 48s linear infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+@keyframes cf-bar-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 18px 3px rgba(59, 130, 246, 0.45); }
+}
+.cf-glow { animation: cf-bar-glow 2.6s ease-in-out infinite; }
+
+.cf-hslide { transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-blob, .cf-blob-2, .cf-bob, .cf-spin-slow, .cf-glow { animation: none; }
+  .cf-hslide { transition: none; }
+}

@@ -85,7 +85,9 @@ export function AnalyticsChart() {
                 <div key={b.time} className="group relative flex-1">
                   <div
                     className={`cf-bar w-full rounded-t-lg ${
-                      i === latest ? "bg-[#3B82F6]" : "bg-[#BFDBFE] group-hover:bg-[#93C5FD]"
+                      i === latest
+                        ? "cf-glow bg-[#3B82F6]"
+                        : "bg-[#BFDBFE] group-hover:bg-[#93C5FD]"
                     }`}
                     style={
                       { height: `${(b.h / 100) * 224}px`, "--cf-d": `${i * 0.06}s` } as React.CSSProperties

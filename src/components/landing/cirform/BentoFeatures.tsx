@@ -52,10 +52,15 @@ export function BentoFeatures() {
   const decPct = loaded.length ? 100 - advPct : 0;
 
   return (
-    <section className="px-5 py-16 pt-24 sm:py-20 sm:pt-24">
+    <section className="relative overflow-hidden px-5 py-16 pt-24 sm:py-20 sm:pt-24">
+      {/* Drifting glow behind the bento container */}
+      <div
+        className="cf-blob pointer-events-none absolute -right-24 top-16 h-80 w-80 rounded-full bg-white/50 blur-3xl"
+        aria-hidden="true"
+      />
       <div
         ref={ref}
-        className={`mx-auto max-w-6xl rounded-3xl bg-white/60 p-4 sm:p-6 ${
+        className={`relative mx-auto max-w-6xl rounded-3xl bg-white/60 p-4 sm:p-6 ${
           shown ? "reveal-shown" : ""
         }`}
       >
@@ -129,14 +134,13 @@ export function BentoFeatures() {
                 Empower <span className="cf-serif text-[#7C3AED]">smarter</span> investing
                 decisions
               </h3>
-              {/* Abstract 3D-ish card graphic */}
+              {/* Abstract 3D-ish card graphic — rotated wrapper, floating inner */}
+              <div className="mt-5" style={{ transform: "rotate(-3deg)" }} aria-hidden="true">
               <div
-                className="mt-5 h-32 rounded-xl p-4 shadow-lg"
+                className="cf-bob h-32 rounded-xl p-4 shadow-lg"
                 style={{
                   background: "linear-gradient(135deg, #1A56DB 0%, #7C3AED 60%, #8B5CF6 100%)",
-                  transform: "rotate(-3deg)",
                 }}
-                aria-hidden="true"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[13px] font-bold tracking-tight text-white">
@@ -148,6 +152,7 @@ export function BentoFeatures() {
                 <p className="mt-2 text-[11px] tracking-[0.2em] text-white/70">
                   RESEARCH · NOT A BROKER
                 </p>
+              </div>
               </div>
             </article>
             <article

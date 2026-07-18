@@ -89,7 +89,7 @@ export function SpeedHero() {
           href="#about"
           className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/70 hover:text-white"
         >
-          Click ↓ to explore
+          Scroll ↓ to explore
         </a>
         <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
         <div className="flex items-center gap-3">

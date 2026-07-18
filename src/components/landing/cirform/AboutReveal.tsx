@@ -32,10 +32,19 @@ export function AboutReveal() {
   let wordIndex = 0;
 
   return (
-    <section className="px-5 py-20 sm:py-24">
+    <section className="relative overflow-hidden px-5 py-20 sm:py-24">
+      {/* Drifting gradient blobs behind the card */}
+      <div
+        className="cf-blob pointer-events-none absolute -left-24 top-8 h-72 w-72 rounded-full bg-[#93C5FD]/40 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="cf-blob-2 pointer-events-none absolute -right-20 bottom-4 h-80 w-80 rounded-full bg-[#8B5CF6]/25 blur-3xl"
+        aria-hidden="true"
+      />
       <div
         ref={ref}
-        className={`mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-md sm:p-12 ${
+        className={`relative mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-md sm:p-12 ${
           shown ? "reveal-shown" : ""
         }`}
       >
