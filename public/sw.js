@@ -1,4 +1,4 @@
-// KILL-SWITCH service worker (v4 - with fetch passthrough + clients.claim).
+// KILL-SWITCH service worker (v5 - re-trigger run).
 //
 // The app no longer registers a service worker. This file exists only to
 // clean up any worker left over from earlier versions: when a browser that
