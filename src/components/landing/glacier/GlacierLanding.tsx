@@ -93,10 +93,20 @@ export function GlacierLanding() {
         if (cancelled) return;
         const world = new GlacierWorld(canvas, { quality, reducedMotion: reducedRef.current });
         worldRef.current = world;
+        // unrecoverable at runtime (crashing frames, dead context) → swap to
+        // the CSS world rather than leaving a black canvas behind the text
+        world.onFatal = () => {
+          if (cancelled) return;
+          worldRef.current = null;
+          world.dispose();
+          fail();
+        };
         await world.init((f) => !cancelled && setLoadFrac(f));
         if (cancelled) return;
         world.resize(window.innerWidth, window.innerHeight);
         measure();
+        // section heights can drift a hair once webfonts settle — remap then
+        document.fonts?.ready.then(() => !cancelled && measure()).catch(() => {});
         setLoaded(true);
         world.playIntro();
         world.start();
@@ -106,6 +116,19 @@ export function GlacierLanding() {
         } else {
           window.setTimeout(() => setIntroDone(true), 2200);
         }
+        // watchdog: if not a single frame rendered a few seconds after boot,
+        // the rAF chain or GPU is dead in a way we couldn't detect — bail out.
+        // A hidden tab pauses rAF legitimately, so re-arm instead of bailing.
+        const watchdog = () => {
+          if (cancelled || worldRef.current !== world) return;
+          if (world.framesRendered > 0) return;
+          if (document.hidden) {
+            window.setTimeout(watchdog, 4000);
+            return;
+          }
+          world.onFatal?.();
+        };
+        window.setTimeout(watchdog, 4000);
       } catch {
         if (!cancelled) fail();
       }

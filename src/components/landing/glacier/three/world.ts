@@ -58,6 +58,11 @@ export class GlacierWorld {
   private time = 0;
   /* narrow-viewport factor: pulls side chambers toward centre on phones */
   private squeeze = 1;
+  private failures = 0;
+  /* successful renders — the component's watchdog checks this stays > 0 */
+  framesRendered = 0;
+  /* set by the component: called when rendering is beyond recovery */
+  onFatal: (() => void) | null = null;
 
   quality: Quality;
 
@@ -81,7 +86,22 @@ export class GlacierWorld {
     this.camera = new THREE.PerspectiveCamera(50, 1, 0.1, 120);
     this.camera.position.set(0, 0, 7.5);
     document.addEventListener("visibilitychange", this.onVisibility);
+    // survive GPU context loss: preventDefault permits restoration, and
+    // three re-uploads its resources when the context comes back
+    canvas.addEventListener("webglcontextlost", this.onContextLost);
+    canvas.addEventListener("webglcontextrestored", this.onContextRestored);
   }
+
+  private onContextLost = (e: Event) => {
+    e.preventDefault();
+    this.stop();
+  };
+
+  private onContextRestored = () => {
+    if (this.disposed) return;
+    this.start();
+    this.renderOnce();
+  };
 
   /* Build the world in steps, yielding between them so the loader can paint
      honest progress. All geometry is procedural — no network assets. */
@@ -179,14 +199,27 @@ export class GlacierWorld {
     this.assembly = 1;
   }
 
+  /* Always restarts from scratch — a stale "running" flag with a dead rAF
+     chain (discarded while the tab was hidden) must not block a restart. */
   start(): void {
-    if (this.running || this.disposed || this.reducedMotion) return;
+    if (this.disposed || this.reducedMotion) return;
+    this.stop();
     this.running = true;
     this.clock.start();
     const loop = () => {
       if (!this.running) return;
       this.raf = requestAnimationFrame(loop);
-      this.tick(this.clock.getDelta());
+      try {
+        this.tick(this.clock.getDelta());
+        this.failures = 0;
+      } catch {
+        // a persistently crashing frame is unrecoverable: hand over to the
+        // CSS fallback instead of spinning on a black canvas
+        if (++this.failures > 8) {
+          this.stop();
+          this.onFatal?.();
+        }
+      }
     };
     this.raf = requestAnimationFrame(loop);
   }
@@ -200,15 +233,26 @@ export class GlacierWorld {
     if (this.disposed) return;
     // deterministic single frame for reduced motion: time tracks progress so
     // each section still gets a distinct composition
-    this.smoothP = this.targetP;
-    this.time = 2 + this.targetP * 10;
-    this.applyFrame(0.016);
-    this.renderer.render(this.scene, this.camera);
+    try {
+      this.smoothP = this.targetP;
+      this.time = 2 + this.targetP * 10;
+      this.applyFrame(0.016);
+      this.renderer.render(this.scene, this.camera);
+      this.framesRendered++;
+    } catch {
+      this.onFatal?.();
+    }
   }
 
   private onVisibility = () => {
-    if (document.hidden) this.stop();
-    else if (!this.reducedMotion) this.start();
+    if (document.hidden) {
+      this.stop();
+    } else if (!this.reducedMotion) {
+      // paint immediately, then restart the loop fresh — heals rAF chains
+      // that some browsers discard while a tab is hidden
+      this.renderOnce();
+      this.start();
+    }
   };
 
   private tick(dt: number): void {
@@ -225,6 +269,7 @@ export class GlacierWorld {
     } else {
       this.renderer.render(this.scene, this.camera);
     }
+    this.framesRendered++;
   }
 
   private applyFrame(dt: number): void {
@@ -287,6 +332,8 @@ export class GlacierWorld {
     this.disposed = true;
     this.stop();
     document.removeEventListener("visibilitychange", this.onVisibility);
+    this.renderer.domElement.removeEventListener("webglcontextlost", this.onContextLost);
+    this.renderer.domElement.removeEventListener("webglcontextrestored", this.onContextRestored);
     this.particles?.dispose();
     this.post?.dispose();
     this.scene.traverse((obj) => {
