@@ -311,14 +311,12 @@ export function GlacierLanding() {
       <Loader progress={loadFrac} done={loaded} />
 
       {/* Persistent scene behind everything; CSS gradient world if no WebGL */}
+      {/* z-0, never negative: a negative z-index would escape this (non-
+          stacking) wrapper and paint behind the opaque <body> background. */}
       {!fallback && (
-        <canvas
-          ref={canvasRef}
-          className="fixed inset-0 -z-10 h-full w-full"
-          aria-hidden="true"
-        />
+        <canvas ref={canvasRef} className="fixed inset-0 z-0 h-full w-full" aria-hidden="true" />
       )}
-      {fallback && <div className="gl-fallback-bg fixed inset-0 -z-10" aria-hidden="true" />}
+      {fallback && <div className="gl-fallback-bg fixed inset-0 z-0" aria-hidden="true" />}
 
       {/* Skip link + chrome */}
       <a href="#platform" className="gl-skip gl-focus">
@@ -411,7 +409,8 @@ export function GlacierLanding() {
         </button>
       )}
 
-      <main>
+      {/* content rides above the canvas (which now sits at z-0) */}
+      <main className="relative z-10">
         <div ref={heroRef}>
           <Hero />
         </div>

@@ -512,6 +512,8 @@ button, a, [role="button"], input, select, textarea {
    app theme toggle. All gl-* styles are scoped under .gl-root. */
 
 .gl-root {
+  /* opaque ground so the app theme's body background never shows through */
+  isolation: isolate;
   background: #04101c; /* under-scroll and no-WebGL ground colour */
   scrollbar-gutter: stable;
 }
