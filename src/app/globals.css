@@ -599,3 +599,20 @@ button, a, [role="button"], input, select, textarea {
   .gl-scroll-line, .gl-pulse, .gl-menu-item { animation: none; }
   .gl-menu-item { opacity: 1; transform: none; }
 }
+
+/* Callout labels pinned to an open shard */
+.gl-callout {
+  will-change: transform, opacity;
+}
+
+/* Return-to-surface veil: frost closing in, then clearing */
+.gl-loop-veil {
+  background:
+    radial-gradient(120% 80% at 50% 50%, transparent 30%, rgba(10, 32, 48, 0.55) 75%, rgba(4, 16, 28, 0.9) 100%),
+    linear-gradient(115deg, transparent 48.8%, rgba(234, 246, 255, 0.06) 49%, transparent 49.4%);
+  backdrop-filter: blur(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-loop-veil { backdrop-filter: none; }
+}

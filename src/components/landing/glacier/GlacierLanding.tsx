@@ -7,6 +7,9 @@ import { MODULES, SECTIONS, BRAND, type ParticleShape, type SectionId } from "./
 import { Loader } from "./Loader";
 import { Cursor } from "./Cursor";
 import { IndexMenu } from "./IndexMenu";
+import { Callouts } from "./Callouts";
+import { setScrambleTick } from "./ScrambleText";
+import { smoothScrollTo, cancelSmoothScroll } from "./scroll";
 import { Hero } from "./sections/Hero";
 import { Platform } from "./sections/Platform";
 import { About } from "./sections/About";
@@ -33,6 +36,8 @@ export function GlacierLanding() {
   const [activeSection, setActiveSection] = useState(0);
   const [activeStage, setActiveStage] = useState(0);
   const [audioOn, setAudioOn] = useState(false);
+  const [openStage, setOpenStage] = useState(-1);
+  const [looping, setLooping] = useState(false);
   const reducedRef = useRef(false);
   /* cached geometry so the scroll handler never reads layout */
   const geomRef = useRef({ maxScroll: 1, vh: 1, tops: [0, 0, 0, 0] });
@@ -93,6 +98,10 @@ export function GlacierLanding() {
         if (cancelled) return;
         const world = new GlacierWorld(canvas, { quality, reducedMotion: reducedRef.current });
         worldRef.current = world;
+        if (process.env.NODE_ENV !== "production") {
+          // dev-only handle for interaction testing; stripped from prod builds
+          (window as unknown as { __glacier?: unknown }).__glacier = world;
+        }
         // unrecoverable at runtime (crashing frames, dead context) → swap to
         // the CSS world rather than leaving a black canvas behind the text
         world.onFatal = () => {
@@ -191,23 +200,16 @@ export function GlacierLanding() {
     // re-runs once the world boots so the scene gets its layout + first frame
   }, [fallback, measure, loaded]);
 
-  /* ---- navigation ---- */
+  /* ---- navigation (one eased scroll implementation for every jump) ---- */
   const scrollToSection = useCallback((id: SectionId) => {
-    const map: Record<SectionId, React.RefObject<HTMLDivElement | null>> = {
-      hero: heroRef,
-      platform: platformRef,
-      about: aboutRef,
-      contact: contactRef,
-    };
-    map[id].current?.scrollIntoView({
-      behavior: reducedRef.current ? "auto" : "smooth",
-    });
+    const order: SectionId[] = ["hero", "platform", "about", "contact"];
+    const y = geomRef.current.tops[order.indexOf(id)] ?? 0;
+    smoothScrollTo(y, { instant: reducedRef.current });
   }, []);
 
   const jumpToStage = useCallback((i: number) => {
-    window.scrollTo({
-      top: geomRef.current.tops[1] + i * geomRef.current.vh + 2,
-      behavior: reducedRef.current ? "auto" : "smooth",
+    smoothScrollTo(geomRef.current.tops[1] + i * geomRef.current.vh + 2, {
+      instant: reducedRef.current,
     });
   }, []);
 
@@ -215,11 +217,92 @@ export function GlacierLanding() {
     worldRef.current?.setParticleShape(shape);
   }, []);
 
+  /* Click-to-inspect: opens one shard at a time and reveals its callouts. */
+  const toggleOpen = useCallback((i: number) => {
+    setOpenStage((prev) => {
+      const next = prev === i ? -1 : i;
+      worldRef.current?.setOpenModule(next);
+      audioRef.current?.shard(next !== -1);
+      return next;
+    });
+  }, []);
+
+  /* Callouts read anchors straight from the world each frame (no state). */
+  const readCallouts = useCallback(
+    () => (openStage >= 0 ? worldRef.current?.calloutScreen[openStage] ?? null : null),
+    [openStage]
+  );
+
   const toggleAudio = useCallback(() => {
     if (!audioRef.current) audioRef.current = new LandingAudio();
-    setAudioOn(audioRef.current.toggle());
+    const on = audioRef.current.toggle();
+    setAudioOn(on);
+    // scramble ticks route through the same audio instance
+    setScrambleTick(on ? () => audioRef.current?.tick() : null);
   }, []);
-  useEffect(() => () => audioRef.current?.dispose(), []);
+  useEffect(
+    () => () => {
+      setScrambleTick(null);
+      audioRef.current?.dispose();
+    },
+    []
+  );
+
+  /* An open shard closes itself once its stage leaves the frame, so callouts
+     never linger over a different scene. */
+  useEffect(() => {
+    if (openStage === -1 || activeStage === openStage) return;
+    const id = requestAnimationFrame(() => {
+      setOpenStage(-1);
+      worldRef.current?.setOpenModule(-1);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [activeStage, openStage]);
+
+  /* End of the journey loops home: once the visitor rests at the very bottom,
+     the world eases back up to the igloo. Any input cancels it. */
+  useEffect(() => {
+    if (fallback || activeSection !== 3) return;
+    let timer = 0;
+    let cancelled = false;
+    const cancel = () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      cancelSmoothScroll();
+      setLooping(false);
+    };
+    const arm = () => {
+      timer = window.setTimeout(() => {
+        if (cancelled) return;
+        const atBottom =
+          window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 4;
+        if (!atBottom) return;
+        setLooping(true);
+        audioRef.current?.chime(420);
+        // veil closes in, the world glides home, then the veil clears
+        window.setTimeout(() => {
+          if (cancelled) return;
+          smoothScrollTo(0, {
+            duration: 2600,
+            instant: reducedRef.current,
+            onDone: () => !cancelled && setLooping(false),
+          });
+          // safety net in case the ride is cancelled mid-flight by input
+          window.setTimeout(() => !cancelled && setLooping(false), 3200);
+        }, 900);
+      }, 3200);
+    };
+    arm();
+    window.addEventListener("wheel", cancel, { passive: true, once: true });
+    window.addEventListener("touchstart", cancel, { passive: true, once: true });
+    window.addEventListener("keydown", cancel, { once: true });
+    return () => {
+      cancel();
+      window.removeEventListener("wheel", cancel);
+      window.removeEventListener("touchstart", cancel);
+      window.removeEventListener("keydown", cancel);
+    };
+  }, [activeSection, fallback]);
 
   const onHeroSection = activeSection === 0;
 
@@ -333,7 +416,12 @@ export function GlacierLanding() {
           <Hero />
         </div>
         <div ref={platformRef}>
-          <Platform activeStage={activeStage} onStageJump={jumpToStage} />
+          <Platform
+            activeStage={activeStage}
+            onStageJump={jumpToStage}
+            openStage={openStage}
+            onToggleOpen={toggleOpen}
+          />
         </div>
         <div ref={aboutRef}>
           <About />
@@ -342,6 +430,27 @@ export function GlacierLanding() {
           <Contact onShape={setShape} />
         </div>
       </main>
+
+      {!fallback && openStage >= 0 && (
+        <Callouts
+          callouts={MODULES[openStage].callouts}
+          accent={MODULES[openStage].accent}
+          active
+          read={readCallouts}
+        />
+      )}
+
+      {/* Frost veil for the return-to-surface loop */}
+      <div
+        aria-hidden="true"
+        className={`gl-loop-veil pointer-events-none fixed inset-0 z-[60] transition-opacity duration-700 ${
+          looping ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <p className="absolute inset-x-0 top-1/2 text-center font-mono text-[10px] uppercase tracking-[0.5em] text-[#9fc9de]">
+          Returning to the surface
+        </p>
+      </div>
 
       <IndexMenu open={menuOpen} onClose={() => setMenuOpen(false)} onNavigate={scrollToSection} />
       <Cursor />

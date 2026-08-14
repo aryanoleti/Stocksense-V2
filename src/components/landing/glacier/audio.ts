@@ -53,6 +53,42 @@ export class LandingAudio {
     return this.on;
   }
 
+  /* Dry tick as scramble text resolves a character. Kept very short and
+     quiet — one fires per resolved glyph, so it must never stack into noise. */
+  tick(): void {
+    if (!this.on || !this.ctx || !this.master) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    osc.type = "square";
+    osc.frequency.value = 2400 + Math.random() * 1600;
+    g.gain.setValueAtTime(0.012, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+    osc.connect(g).connect(this.master);
+    osc.start(t);
+    osc.stop(t + 0.05);
+  }
+
+  /* Crystalline chord when a shard opens (or a reversed sweep when it shuts). */
+  shard(opening: boolean): void {
+    if (!this.on || !this.ctx || !this.master) return;
+    const t = this.ctx.currentTime;
+    const notes = opening ? [523.25, 783.99, 1046.5] : [1046.5, 783.99, 523.25];
+    notes.forEach((f, i) => {
+      const osc = this.ctx!.createOscillator();
+      const g = this.ctx!.createGain();
+      const at = t + i * 0.05;
+      osc.type = "sine";
+      osc.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(0.045, at + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.9);
+      osc.connect(g).connect(this.master!);
+      osc.start(at);
+      osc.stop(at + 1);
+    });
+  }
+
   /* Soft glassy chime when the visitor crosses into a new section. */
   chime(pitch = 880): void {
     if (!this.on || !this.ctx || !this.master) return;

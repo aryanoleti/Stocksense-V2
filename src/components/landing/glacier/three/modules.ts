@@ -5,7 +5,7 @@ import type { Project } from "../data";
 export type ModuleObject = {
   group: THREE.Group;
   /* per-frame animation; t = seconds, active = 0..1 focus weight */
-  tick: (t: number, active: number) => void;
+  tick: (t: number, active: number, open?: number) => void;
 };
 
 function facet(geo: THREE.BufferGeometry): THREE.BufferGeometry {
@@ -172,17 +172,26 @@ const BUILDERS: Record<Project["visualType"], (accent: string) => ModuleObject> 
   strata: makeStrata,
 };
 
-export function makeModuleObject(mod: Project, quality: "high" | "low"): ModuleObject {
+export function makeModuleObject(
+  mod: Project,
+  quality: "high" | "low",
+  seed: number
+): ModuleObject {
   const inner = BUILDERS[mod.visualType](mod.accent);
-  const enclosure = makeEnclosure(2.9, mod.accent, quality === "high");
+  const enclosure = makeEnclosure(2.9, mod.accent, quality === "high", seed);
   const group = new THREE.Group();
   group.add(inner.group, enclosure);
   return {
     group,
-    tick(t, active) {
+    /* `open` (0..1) is the click-to-inspect state: the shard swells and
+       spins up, letting the callout lines read against a calmer core. */
+    tick(t, active, open = 0) {
       inner.tick(t, active);
-      enclosure.rotation.y = t * 0.05;
+      enclosure.rotation.y = t * (0.05 + open * 0.12);
       enclosure.rotation.z = Math.sin(t * 0.11) * 0.08;
+      enclosure.scale.setScalar(1 + open * 0.09);
+      inner.group.scale.setScalar(1 + open * 0.05);
+      group.rotation.y = Math.sin(t * 0.13) * 0.06 * (1 - open);
     },
   };
 }

@@ -38,6 +38,10 @@ export function Hero() {
         </Link>
       </div>
 
+      <p className="mt-10 font-mono text-[9px] uppercase tracking-[0.4em] text-[#2c5872]/70">
+        Hover the shelter to open it
+      </p>
+
       <div
         className="pointer-events-none absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3"
         aria-hidden="true"

@@ -1,10 +1,15 @@
 import * as THREE from "three";
 import { resetRand } from "./crystals";
-import { makeModuleObject, makeLattice, type ModuleObject } from "./modules";
+import { makeModuleObject, type ModuleObject } from "./modules";
 import { makeIceberg } from "./iceberg";
+import { makeIglooScene } from "./igloo";
+import { makeRingScene } from "./ring";
 import { ParticleField } from "./particles";
 import { PostPass } from "./post";
 import { MODULES, type ParticleShape } from "../data";
+
+/* Screen-space anchor for one DOM callout label, recomputed each frame. */
+export type ProjectedCallout = { x: number; y: number; visible: boolean };
 
 export type Quality = "high" | "low";
 
@@ -39,10 +44,20 @@ export class GlacierWorld {
   private running = false;
   private disposed = false;
 
-  private hero!: ReturnType<typeof makeIceberg>;
+  private berg!: ReturnType<typeof makeIceberg>;
+  private igloo!: ReturnType<typeof makeIglooScene>;
   private modules: ModuleObject[] = [];
-  private lattice!: ModuleObject;
+  private ring!: ReturnType<typeof makeRingScene>;
   private particles!: ParticleField;
+
+  /* click-to-inspect state per module shard */
+  private opens: number[] = [];
+  private openTargets: number[] = [];
+  /* screen-space callout anchors, read by the DOM overlay each frame */
+  calloutScreen: ProjectedCallout[][] = [];
+  /* true while the pointer is over the igloo (drives the cursor label) */
+  iglooHovered = false;
+  private tmpVec = new THREE.Vector3();
 
   private waypoints: Waypoint[] = [];
   private layout: Layout | null = null;
@@ -113,22 +128,29 @@ export class GlacierWorld {
       await new Promise((r) => setTimeout(r, 0));
     };
     resetRand(7);
-    this.hero = makeIceberg(this.quality);
-    this.scene.add(this.hero.group);
+    // Hero: an igloo on the snowfield, with the berg on the horizon behind.
+    this.igloo = makeIglooScene(this.quality);
+    this.scene.add(this.igloo.group);
+    this.berg = makeIceberg(this.quality);
+    this.berg.group.position.set(-9, -1.1, -19);
+    this.berg.group.scale.setScalar(1.5);
+    this.scene.add(this.berg.group);
     await step(0.2);
 
     MODULES.forEach((mod, i) => {
-      const obj = makeModuleObject(mod, this.quality);
+      const obj = makeModuleObject(mod, this.quality, i * 3.7 + 1.3);
       obj.group.position.set((i % 2 ? 2.6 : -2.6) * this.squeeze, STAGE_Y(i), 0);
       this.scene.add(obj.group);
       this.modules.push(obj);
+      this.opens.push(0);
+      this.openTargets.push(0);
+      this.calloutScreen.push(mod.callouts.map(() => ({ x: 0, y: 0, visible: false })));
     });
     await step(0.5);
 
-    this.lattice = makeLattice("#7fd8c8");
-    this.lattice.group.position.set(0, ABOUT_Y, 0);
-    this.lattice.group.rotation.x = 0.4;
-    this.scene.add(this.lattice.group);
+    this.ring = makeRingScene(this.quality);
+    this.ring.group.position.set(0, ABOUT_Y, 0);
+    this.scene.add(this.ring.group);
 
     this.particles = new ParticleField(this.quality === "high" ? 5200 : 2200);
     this.particles.points.position.set(0, CONTACT_Y, 0);
@@ -180,6 +202,31 @@ export class GlacierWorld {
 
   setPointer(x: number, y: number): void {
     this.pointer.set(x, y);
+    // Hover test for the igloo without a raycast: project its centre and
+    // compare against a screen-space radius derived from its bounding sphere.
+    if (this.smoothP < 0.12) {
+      const c = this.igloo.hitSphere.center.clone().project(this.camera);
+      const edge = this.igloo.hitSphere.center
+        .clone()
+        .add(new THREE.Vector3(this.igloo.hitSphere.radius, 0, 0))
+        .project(this.camera);
+      const r = Math.abs(edge.x - c.x);
+      const hit = Math.hypot(x - c.x, (y - c.y) * 0.75) < r;
+      this.iglooHovered = hit;
+      this.igloo.setOpen(hit ? 1 : 0);
+    } else if (this.iglooHovered) {
+      this.iglooHovered = false;
+      this.igloo.setOpen(0);
+    }
+  }
+
+  /* Toggle a module shard open (click to inspect); -1 closes all. */
+  setOpenModule(index: number): void {
+    this.openTargets = this.openTargets.map((_, i) => (i === index ? 1 : 0));
+    if (this.reducedMotion) {
+      this.opens = this.openTargets.slice();
+      this.renderOnce();
+    }
   }
 
   setParticleShape(shape: ParticleShape): void {
@@ -296,7 +343,12 @@ export class GlacierWorld {
       (this.scene.background as THREE.Color).copy(fog.color);
     }
 
-    this.hero.tick(this.time, this.assembly);
+    const camY = this.camera.position.y;
+    if (camY > -14) {
+      this.igloo.tick(this.time, this.assembly, dt);
+      this.berg.tick(this.time, this.assembly);
+    }
+
     const layout = this.layout;
     this.modules.forEach((m, i) => {
       let active = 0.3;
@@ -306,13 +358,49 @@ export class GlacierWorld {
         const half = Math.max(1e-5, (e - s) / 2);
         active = THREE.MathUtils.clamp(1 - Math.abs(p - mid) / half, 0, 1);
       }
+      this.opens[i] += (this.openTargets[i] - this.opens[i]) * Math.min(1, dt * 5);
+      const near = Math.abs(m.group.position.y - camY) < 16;
       // skip offscreen chambers entirely — no point animating them
-      if (Math.abs(m.group.position.y - this.camera.position.y) < 16) {
-        m.tick(this.time, active);
-      }
+      if (near) m.tick(this.time, active, this.opens[i]);
+      this.projectCallouts(i, near && this.opens[i] > 0.05);
     });
-    if (Math.abs(ABOUT_Y - this.camera.position.y) < 16) this.lattice.tick(this.time, 1);
-    if (Math.abs(CONTACT_Y - this.camera.position.y) < 18) this.particles.tick(this.time, dt);
+
+    if (Math.abs(ABOUT_Y - camY) < 18) {
+      // the ring assembles by PROXIMITY: whole when the camera arrives
+      const dist = Math.abs(ABOUT_Y - camY);
+      const near = THREE.MathUtils.clamp(1 - (dist - 1.5) / 9, 0, 1);
+      this.ring.tick(this.time, near, this.smoothPointer.x, this.smoothPointer.y);
+    }
+    if (Math.abs(CONTACT_Y - camY) < 18) this.particles.tick(this.time, dt);
+  }
+
+  /* Project each callout anchor to viewport pixels for the DOM overlay.
+     Writing into pre-allocated objects avoids per-frame garbage. */
+  private projectCallouts(moduleIndex: number, show: boolean): void {
+    const slots = this.calloutScreen[moduleIndex];
+    if (!slots) return;
+    const mod = MODULES[moduleIndex];
+    const base = this.modules[moduleIndex].group.position;
+    const w = this.renderer.domElement.clientWidth;
+    const h = this.renderer.domElement.clientHeight;
+    for (let i = 0; i < slots.length; i++) {
+      const slot = slots[i];
+      if (!show) {
+        slot.visible = false;
+        continue;
+      }
+      const at = mod.callouts[i].at;
+      // narrow viewports pull the anchors in toward the shard so the labels
+      // stay on screen; the clamp below is the final guarantee
+      this.tmpVec
+        .set(base.x + at[0] * this.squeeze, base.y + at[1], base.z + at[2])
+        .project(this.camera);
+      const x = (this.tmpVec.x * 0.5 + 0.5) * w;
+      const y = (-this.tmpVec.y * 0.5 + 0.5) * h;
+      slot.x = Math.max(14, Math.min(x, w - 186));
+      slot.y = Math.max(70, Math.min(y, h - 90));
+      slot.visible = this.tmpVec.z < 1;
+    }
   }
 
   resize(width: number, height: number): void {

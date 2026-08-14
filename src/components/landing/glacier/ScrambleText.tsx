@@ -4,6 +4,13 @@ import { useEffect, useRef, useState, type ElementType } from "react";
 
 const GLYPHS = "▚▞▟▙◢◣◤#/\\<>=+*┃━01ΔΞΨ";
 
+/* Set by GlacierLanding once audio exists. Module-level so every scramble
+   can tick without threading a prop through each section. */
+let onResolve: (() => void) | null = null;
+export function setScrambleTick(fn: (() => void) | null): void {
+  onResolve = fn;
+}
+
 /* Decodes text from glitch glyphs, left to right. Falls back to plain text
    for reduced motion (checked live, not just at mount). */
 export function ScrambleText({
@@ -51,6 +58,7 @@ export function ScrambleText({
     }
     let raf = 0;
     let start = 0;
+    let lastSolved = -1;
     const run = (now: number) => {
       if (!start) start = now + delay;
       const t = (now - start) / duration;
@@ -64,6 +72,11 @@ export function ScrambleText({
         return;
       }
       const solved = Math.floor(t * text.length);
+      // one tick per newly resolved character (audio no-ops when muted)
+      if (solved > lastSolved) {
+        lastSolved = solved;
+        onResolve?.();
+      }
       let out = "";
       for (let i = 0; i < text.length; i++) {
         const ch = text[i];

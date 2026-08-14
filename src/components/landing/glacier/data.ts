@@ -1,6 +1,15 @@
 /* Content for the glacier landing. Everything user-visible lives here so
    copy and modules can be swapped without touching the components. */
 
+/* A labelled point on a shard, revealed when the visitor opens it. `at` is
+   an offset from the shard's centre in world units; the renderer projects
+   it to screen space every frame and draws a leader line to the label. */
+export type Callout = {
+  code: string;
+  label: string;
+  at: [number, number, number];
+};
+
 export type Project = {
   title: string;
   category: string;
@@ -9,6 +18,7 @@ export type Project = {
   accent: string;
   visualType: "orbital" | "twin" | "neural" | "strata";
   href: string;
+  callouts: Callout[];
 };
 
 /* The four platform modules shown in the scroll journey. All of them are
@@ -23,6 +33,11 @@ export const MODULES: Project[] = [
     accent: "#6fd4a8",
     visualType: "orbital",
     href: "/quant/",
+    callouts: [
+      { code: "MODULE_01", label: "SIX ANALYSIS TABS", at: [-2.1, 1.5, 0.6] },
+      { code: "SIGNALS", label: "RSI · MACD · ATR · S/R", at: [2.3, 0.1, 0.4] },
+      { code: "METHOD", label: "ARITHMETIC SHOWN IN FULL", at: [1.4, -1.9, 0.5] },
+    ],
   },
   {
     title: "COMPARE DESK",
@@ -33,6 +48,11 @@ export const MODULES: Project[] = [
     accent: "#8fd8ea",
     visualType: "twin",
     href: "/compare/",
+    callouts: [
+      { code: "MODULE_02", label: "TWO INSTRUMENTS, ONE AXIS", at: [-2.2, 1.4, 0.5] },
+      { code: "NORMALISED", label: "PERFORMANCE REBASED TO 100", at: [2.2, 0.3, 0.5] },
+      { code: "SCORECARD", label: "SIX FUNDAMENTAL FACTORS", at: [1.2, -1.9, 0.4] },
+    ],
   },
   {
     title: "ASK AI",
@@ -43,6 +63,11 @@ export const MODULES: Project[] = [
     accent: "#b9a8f2",
     visualType: "neural",
     href: "/ask-ai/",
+    callouts: [
+      { code: "MODULE_03", label: "MARKET-AWARE ANALYST", at: [-2.2, 1.3, 0.5] },
+      { code: "VISION", label: "READS PASTED CHARTS", at: [2.2, 0.0, 0.5] },
+      { code: "MEMORY", label: "CONVERSATIONS KEPT ON FILE", at: [1.3, -1.9, 0.4] },
+    ],
   },
   {
     title: "PORTFOLIO DESK",
@@ -53,6 +78,11 @@ export const MODULES: Project[] = [
     accent: "#7fe0c3",
     visualType: "strata",
     href: "/portfolio/",
+    callouts: [
+      { code: "MODULE_04", label: "REAL HOLDINGS OR SIMULATOR", at: [-2.2, 1.4, 0.5] },
+      { code: "BOOK", label: "₹5,00,000 VIRTUAL CAPITAL", at: [2.2, 0.2, 0.5] },
+      { code: "MARKED", label: "P&L AGAINST LIVE PRICES", at: [1.2, -1.9, 0.4] },
+    ],
   },
 ];
 

@@ -65,21 +65,44 @@ export function resetRand(s = 7): void {
 
 
 
-/* Translucent enclosure: a low-poly icosa shell with an additive fresnel skin
-   and a faint wireframe, so each module reads as "sealed in ice". */
-export function makeEnclosure(radius: number, rim: string, withWire: boolean): THREE.Group {
-  const group = new THREE.Group();
+/* Irregular shard hull: an icosa displaced by position-keyed noise, so every
+   enclosure is a unique chunk of ice rather than a regular polyhedron. Equal
+   inputs give equal displacement, so duplicated vertices stay welded. */
+export function makeShardGeometry(radius: number, seed: number): THREE.BufferGeometry {
   const geo = new THREE.IcosahedronGeometry(radius, 1).toNonIndexed();
+  const pos = geo.getAttribute("position") as THREE.BufferAttribute;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const n =
+      Math.sin(v.x * 1.9 + v.y * 1.2 + seed) * Math.cos(v.z * 1.6 + seed * 2.0) * 0.5 +
+      Math.sin(v.y * 2.8 + v.z * 1.1 + seed * 3.0) * 0.26;
+    v.multiplyScalar(1 + n * 0.22);
+    v.y *= 1.16; // shards run tall, like calved ice
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
   geo.computeVertexNormals();
+  return geo;
+}
+
+/* Translucent enclosure: a shard-shaped shell with an additive fresnel skin
+   and a faint wireframe, so each module reads as "sealed in ice". */
+export function makeEnclosure(
+  radius: number,
+  rim: string,
+  withWire: boolean,
+  seed = 0
+): THREE.Group {
+  const group = new THREE.Group();
   const skin = new THREE.Mesh(
-    geo,
+    makeShardGeometry(radius, seed),
     makeIceMaterial({ deep: "#0a2334", rim, opacity: 0.16, additive: true })
   );
   group.add(skin);
   if (withWire) {
     const wire = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(radius, 1), 12),
-      new THREE.LineBasicMaterial({ color: new THREE.Color(rim), transparent: true, opacity: 0.14 })
+      new THREE.EdgesGeometry(makeShardGeometry(radius, seed), 18),
+      new THREE.LineBasicMaterial({ color: new THREE.Color(rim), transparent: true, opacity: 0.16 })
     );
     group.add(wire);
   }

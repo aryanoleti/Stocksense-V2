@@ -10,9 +10,13 @@ import { ScrambleText } from "../ScrambleText";
 export function Platform({
   activeStage,
   onStageJump,
+  openStage,
+  onToggleOpen,
 }: {
   activeStage: number;
   onStageJump: (index: number) => void;
+  openStage: number;
+  onToggleOpen: (index: number) => void;
 }) {
   return (
     <section
@@ -89,18 +93,39 @@ export function Platform({
                 <p className="mt-5 text-sm leading-relaxed text-[#b8d9e8] sm:text-[15px]">
                   {m.description}
                 </p>
-                <Link
-                  href={m.href}
-                  data-cursor="VIEW"
-                  tabIndex={active ? 0 : -1}
-                  className={`gl-focus mt-7 inline-flex items-center gap-3 border-b pb-1 font-mono text-[11px] uppercase tracking-[0.3em] transition-colors ${
-                    textLeft ? "" : "flex-row-reverse"
+                <div
+                  className={`mt-7 flex flex-wrap items-center gap-x-7 gap-y-3 ${
+                    textLeft ? "" : "justify-end"
                   }`}
-                  style={{ color: m.accent, borderColor: `${m.accent}66` }}
                 >
-                  Open module
-                  <span aria-hidden="true">↗</span>
-                </Link>
+                  <button
+                    type="button"
+                    data-cursor={openStage === i ? "CLOSE" : "INSPECT"}
+                    tabIndex={active ? 0 : -1}
+                    aria-pressed={openStage === i}
+                    onClick={() => onToggleOpen(i)}
+                    className="gl-focus inline-flex items-center gap-3 border-b border-[#5c93b0]/50 pb-1 font-mono text-[11px] uppercase tracking-[0.3em] text-[#9fc9de] transition-colors hover:border-[#eaf6ff] hover:text-[#eaf6ff]"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`inline-block h-1.5 w-1.5 transition-transform duration-300 ${
+                        openStage === i ? "rotate-45 scale-125" : ""
+                      }`}
+                      style={{ background: m.accent }}
+                    />
+                    {openStage === i ? "Close specimen" : "Inspect specimen"}
+                  </button>
+                  <Link
+                    href={m.href}
+                    data-cursor="VIEW"
+                    tabIndex={active ? 0 : -1}
+                    className="gl-focus inline-flex items-center gap-3 border-b pb-1 font-mono text-[11px] uppercase tracking-[0.3em] transition-colors"
+                    style={{ color: m.accent, borderColor: `${m.accent}66` }}
+                  >
+                    Open module
+                    <span aria-hidden="true">↗</span>
+                  </Link>
+                </div>
               </div>
             </div>
           );
