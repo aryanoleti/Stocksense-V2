@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { makeIceMaterial, makeEnclosure, makeCrystalCluster, rand } from "./crystals";
+import { makeIceMaterial, makeEnclosure, rand } from "./crystals";
 import type { Project } from "../data";
 
 export type ModuleObject = {
@@ -183,43 +183,6 @@ export function makeModuleObject(mod: Project, quality: "high" | "low"): ModuleO
       inner.tick(t, active);
       enclosure.rotation.y = t * 0.05;
       enclosure.rotation.z = Math.sin(t * 0.11) * 0.08;
-    },
-  };
-}
-
-/* Hero centrepiece: a large crystal cluster that assembles during the intro. */
-export function makeHeroCrystal(quality: "high" | "low"): {
-  group: THREE.Group;
-  tick: (t: number, assembly: number) => void;
-} {
-  const mat = makeIceMaterial({ deep: "#123a52", rim: "#d9f2ff", opacity: 0.92 });
-  const { group, shards } = makeCrystalCluster({
-    shardCount: quality === "high" ? 26 : 14,
-    radius: 2.1,
-    material: mat,
-  });
-  // remember resting pose; intro lerps from a scattered pose into it
-  const rest = shards.map((s) => ({
-    pos: s.position.clone(),
-    scale: s.scale.x,
-    scatter: s.position
-      .clone()
-      .normalize()
-      .multiplyScalar(6 + rand() * 7)
-      .add(new THREE.Vector3(0, rand() * 4 - 2, 0)),
-  }));
-  return {
-    group,
-    tick(t, assembly) {
-      mat.uniforms.uTime.value = t;
-      group.rotation.y = t * 0.08;
-      shards.forEach((s, i) => {
-        const r = rest[i];
-        const e = 1 - Math.pow(1 - assembly, 3); // ease-out cubic
-        s.position.lerpVectors(r.scatter, r.pos, e);
-        s.scale.setScalar(r.scale * (0.25 + 0.75 * e));
-        s.position.y += Math.sin(t * 0.7 + i) * 0.02; // idle bob once assembled
-      });
     },
   };
 }

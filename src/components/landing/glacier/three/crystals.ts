@@ -63,39 +63,7 @@ export function resetRand(s = 7): void {
   seed = s;
 }
 
-function shardGeometry(scaleY: number): THREE.BufferGeometry {
-  // Stretched octahedron = classic ice spike; non-indexed for flat facets
-  const g = new THREE.OctahedronGeometry(1, 0).toNonIndexed();
-  g.scale(0.32 + rand() * 0.3, scaleY, 0.32 + rand() * 0.3);
-  g.computeVertexNormals();
-  return g;
-}
 
-/* Grow a crystal cluster: shards radiate from a seed point, shrinking as they
-   move outward — a cheap take on crystal growth that still reads organic. */
-export function makeCrystalCluster(opts: {
-  shardCount: number;
-  radius: number;
-  material: THREE.ShaderMaterial;
-}): { group: THREE.Group; shards: THREE.Mesh[] } {
-  const group = new THREE.Group();
-  const shards: THREE.Mesh[] = [];
-  for (let i = 0; i < opts.shardCount; i++) {
-    const t = i / opts.shardCount;
-    const size = THREE.MathUtils.lerp(1.35, 0.35, t) * (0.75 + rand() * 0.5);
-    const mesh = new THREE.Mesh(shardGeometry(size * 1.9), opts.material);
-    const dir = new THREE.Vector3(rand() - 0.5, rand() * 0.9 - 0.25, rand() - 0.5).normalize();
-    const dist = t * opts.radius * (0.6 + rand() * 0.7);
-    mesh.position.copy(dir.clone().multiplyScalar(dist));
-    // orient the spike along its growth direction with a little jitter
-    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-    mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), (rand() - 0.5) * 0.7);
-    mesh.scale.setScalar(size);
-    group.add(mesh);
-    shards.push(mesh);
-  }
-  return { group, shards };
-}
 
 /* Translucent enclosure: a low-poly icosa shell with an additive fresnel skin
    and a faint wireframe, so each module reads as "sealed in ice". */

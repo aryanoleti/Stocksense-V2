@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { resetRand } from "./crystals";
-import { makeModuleObject, makeHeroCrystal, makeLattice, type ModuleObject } from "./modules";
+import { makeModuleObject, makeLattice, type ModuleObject } from "./modules";
+import { makeIceberg } from "./iceberg";
 import { ParticleField } from "./particles";
 import { PostPass } from "./post";
 import { MODULES, type ParticleShape } from "../data";
@@ -38,7 +39,7 @@ export class GlacierWorld {
   private running = false;
   private disposed = false;
 
-  private hero!: ReturnType<typeof makeHeroCrystal>;
+  private hero!: ReturnType<typeof makeIceberg>;
   private modules: ModuleObject[] = [];
   private lattice!: ModuleObject;
   private particles!: ParticleField;
@@ -92,7 +93,7 @@ export class GlacierWorld {
       await new Promise((r) => setTimeout(r, 0));
     };
     resetRand(7);
-    this.hero = makeHeroCrystal(this.quality);
+    this.hero = makeIceberg(this.quality);
     this.scene.add(this.hero.group);
     await step(0.2);
 
