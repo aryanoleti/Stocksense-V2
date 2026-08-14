@@ -1,4 +1,12 @@
 import * as THREE from "three";
+import {
+  fogUniforms,
+  FOG_VERT_DECL,
+  FOG_VERT_BODY,
+  FOG_FRAG_DECL,
+  FOG_FRAG_APPLY,
+  FOG_FRAG_APPLY_ADDITIVE,
+} from "./fog";
 
 /* Shared fresnel "ice" shader. Facet shading comes from non-indexed geometry
    (per-face normals); the fresnel term fakes the translucent rim of ice. */
@@ -18,16 +26,19 @@ export function makeIceMaterial(opts: {
       uRim: { value: new THREE.Color(opts.rim) },
       uOpacity: { value: opts.opacity ?? 0.9 },
       uTime: { value: 0 },
+      ...fogUniforms,
     },
     vertexShader: /* glsl */ `
       varying vec3 vNormal;
       varying vec3 vView;
       varying vec3 vPos;
+      ${FOG_VERT_DECL}
       void main() {
         vNormal = normalize(normalMatrix * normal);
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         vView = normalize(-mv.xyz);
         vPos = position;
+        ${FOG_VERT_BODY}
         gl_Position = projectionMatrix * mv;
       }
     `,
@@ -39,6 +50,7 @@ export function makeIceMaterial(opts: {
       varying vec3 vNormal;
       varying vec3 vView;
       varying vec3 vPos;
+      ${FOG_FRAG_DECL}
       void main() {
         float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vView))), 2.2);
         // faint internal banding so large faces don't read flat
@@ -47,6 +59,7 @@ export function makeIceMaterial(opts: {
         // facet highlight: faces angled toward a fixed "sky" light get a lift
         float sky = max(dot(normalize(vNormal), normalize(vec3(0.3, 0.9, 0.4))), 0.0);
         col += uRim * sky * 0.18;
+        ${opts.additive ? FOG_FRAG_APPLY_ADDITIVE : FOG_FRAG_APPLY}
         gl_FragColor = vec4(col, uOpacity * (0.55 + fres * 0.45));
       }
     `,

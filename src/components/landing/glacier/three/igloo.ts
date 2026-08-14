@@ -1,5 +1,12 @@
 import * as THREE from "three";
 import { rand } from "./crystals";
+import {
+  fogUniforms,
+  FOG_VERT_DECL,
+  FOG_VERT_BODY,
+  FOG_FRAG_DECL,
+  FOG_FRAG_APPLY,
+} from "./fog";
 
 /* Hero scene: a block-built igloo on a snowy valley floor. Hovering (or
    tapping) makes the courses of blocks drift apart around a warm inner
@@ -15,14 +22,17 @@ function makeSnowMaterial(glowTint: string): THREE.ShaderMaterial {
       uShadow: { value: new THREE.Color("#5f87a3") },
       uGlow: { value: new THREE.Color(glowTint) },
       uOpen: { value: 0 },
+      ...fogUniforms,
     },
     vertexShader: /* glsl */ `
       varying vec3 vNormal;
       varying vec3 vView;
+      ${FOG_VERT_DECL}
       void main() {
         vNormal = normalize(normalMatrix * normal);
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         vView = normalize(-mv.xyz);
+        ${FOG_VERT_BODY}
         gl_Position = projectionMatrix * mv;
       }
     `,
@@ -34,6 +44,7 @@ function makeSnowMaterial(glowTint: string): THREE.ShaderMaterial {
       uniform float uOpen;
       varying vec3 vNormal;
       varying vec3 vView;
+      ${FOG_FRAG_DECL}
       void main() {
         vec3 n = normalize(vNormal);
         float up = clamp(n.y, 0.0, 1.0);
@@ -43,6 +54,7 @@ function makeSnowMaterial(glowTint: string): THREE.ShaderMaterial {
         float fres = pow(1.0 - abs(dot(n, normalize(vView))), 2.5);
         // seams catch the inner glow as the igloo opens
         col += uGlow * fres * (0.12 + uOpen * 0.55);
+        ${FOG_FRAG_APPLY}
         gl_FragColor = vec4(col, 1.0);
       }
     `,
@@ -73,29 +85,27 @@ function makeTerrain(segments: number): THREE.Mesh {
     uniforms: {
       uHigh: { value: new THREE.Color("#eef6fb") },
       uLow: { value: new THREE.Color("#b9d2e2") },
-      uFog: { value: new THREE.Color("#dcedf6") },
+      ...fogUniforms,
     },
     vertexShader: /* glsl */ `
       varying vec3 vNormal;
-      varying vec3 vPos;
+      ${FOG_VERT_DECL}
       void main() {
         vNormal = normal;
-        vPos = position;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        ${FOG_VERT_BODY}
+        gl_Position = projectionMatrix * mv;
       }
     `,
     fragmentShader: /* glsl */ `
       uniform vec3 uHigh;
       uniform vec3 uLow;
-      uniform vec3 uFog;
       varying vec3 vNormal;
-      varying vec3 vPos;
+      ${FOG_FRAG_DECL}
       void main() {
         float slope = clamp(normalize(vNormal).y, 0.0, 1.0);
         vec3 col = mix(uLow, uHigh, slope);
-        // hand-rolled distance fade into the scene fog colour
-        float d = length(vPos.xz);
-        col = mix(col, uFog, smoothstep(14.0, 32.0, d));
+        ${FOG_FRAG_APPLY}
         gl_FragColor = vec4(col, 1.0);
       }
     `,

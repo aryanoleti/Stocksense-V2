@@ -4,6 +4,8 @@ import { makeModuleObject, type ModuleObject } from "./modules";
 import { makeIceberg } from "./iceberg";
 import { makeIglooScene } from "./igloo";
 import { makeRingScene } from "./ring";
+import { makeMist, makeForegroundRidges } from "./mist";
+import { fogUniforms } from "./fog";
 import { ParticleField } from "./particles";
 import { PostPass } from "./post";
 import { MODULES, type ParticleShape } from "../data";
@@ -22,7 +24,7 @@ export type Layout = {
   contact: [number, number];
 };
 
-type Waypoint = { p: number; y: number; x: number; fog: THREE.Color };
+type Waypoint = { p: number; y: number; x: number; fog: THREE.Color; density: number };
 
 const FOG_SURFACE = new THREE.Color("#dcedf6");
 const FOG_MID = new THREE.Color("#5c93b0");
@@ -46,6 +48,7 @@ export class GlacierWorld {
 
   private berg!: ReturnType<typeof makeIceberg>;
   private igloo!: ReturnType<typeof makeIglooScene>;
+  private mist!: ReturnType<typeof makeMist>;
   private modules: ModuleObject[] = [];
   private ring!: ReturnType<typeof makeRingScene>;
   private particles!: ParticleField;
@@ -128,13 +131,22 @@ export class GlacierWorld {
       await new Promise((r) => setTimeout(r, 0));
     };
     resetRand(7);
-    // Hero: an igloo on the snowfield, with the berg on the horizon behind.
-    this.igloo = makeIglooScene(this.quality);
-    this.scene.add(this.igloo.group);
+    /* Hero composition, back to front: the iceberg towers centre-stage out of
+       a sea of mist, the igloo sits on the shelf in front of it, and dark
+       ridges frame the bottom of the frame. */
     this.berg = makeIceberg(this.quality);
-    this.berg.group.position.set(-9, -1.1, -19);
-    this.berg.group.scale.setScalar(1.5);
+    this.berg.group.position.set(-0.6, -1.5, -6.8);
+    this.berg.group.scale.setScalar(2.6);
     this.scene.add(this.berg.group);
+
+    this.igloo = makeIglooScene(this.quality);
+    this.igloo.group.position.set(2.4, -0.2, 2.2);
+    this.igloo.group.scale.setScalar(0.78);
+    this.scene.add(this.igloo.group);
+
+    this.mist = makeMist(this.quality);
+    this.scene.add(this.mist.group);
+    this.scene.add(makeForegroundRidges());
     await step(0.2);
 
     MODULES.forEach((mod, i) => {
@@ -174,8 +186,17 @@ export class GlacierWorld {
   setLayout(layout: Layout): void {
     this.layout = layout;
     const wp: Waypoint[] = [
-      { p: 0, y: 0, x: 0, fog: FOG_SURFACE },
-      { p: layout.hero[1], y: -5, x: 0, fog: FOG_SURFACE.clone().lerp(FOG_MID, 0.5) },
+      // thick weather at the surface; the descent clears as it darkens
+      { p: 0, y: 0, x: 0, fog: FOG_SURFACE, density: 0.062 },
+      {
+        p: layout.hero[1],
+        y: -5,
+        x: 0,
+        fog: FOG_SURFACE.clone().lerp(FOG_MID, 0.5),
+        // a surge of fog right at the hand-off, so the visitor descends
+        // *through* weather instead of cutting between two scenes
+        density: 0.125,
+      },
     ];
     layout.stages.forEach(([s, e], i) => {
       const mid = (s + e) / 2;
@@ -187,11 +208,12 @@ export class GlacierWorld {
         // column keeps the other half of the frame
         x: (i % 2 ? 1.1 : -1.1),
         fog: FOG_MID.clone().lerp(FOG_DEEP, depth),
+        density: 0.05,
       });
     });
     const aboutMid = (layout.about[0] + layout.about[1]) / 2;
-    wp.push({ p: aboutMid, y: ABOUT_Y, x: 0, fog: FOG_DEEP.clone() });
-    wp.push({ p: 1, y: CONTACT_Y + 1.5, x: 0, fog: FOG_ABYSS.clone() });
+    wp.push({ p: aboutMid, y: ABOUT_Y, x: 0, fog: FOG_DEEP.clone(), density: 0.045 });
+    wp.push({ p: 1, y: CONTACT_Y + 1.5, x: 0, fog: FOG_ABYSS.clone(), density: 0.05 });
     this.waypoints = wp.sort((a, b) => a.p - b.p);
   }
 
@@ -205,12 +227,15 @@ export class GlacierWorld {
     // Hover test for the igloo without a raycast: project its centre and
     // compare against a screen-space radius derived from its bounding sphere.
     if (this.smoothP < 0.12) {
-      const c = this.igloo.hitSphere.center.clone().project(this.camera);
-      const edge = this.igloo.hitSphere.center
+      // hit sphere is local to the igloo group, so lift it into world space
+      const world = this.igloo.hitSphere.center
         .clone()
-        .add(new THREE.Vector3(this.igloo.hitSphere.radius, 0, 0))
-        .project(this.camera);
-      const r = Math.abs(edge.x - c.x);
+        .multiplyScalar(this.igloo.group.scale.x)
+        .add(this.igloo.group.position);
+      const radius = this.igloo.hitSphere.radius * this.igloo.group.scale.x;
+      const c = world.clone().project(this.camera);
+      const edge = world.clone().add(new THREE.Vector3(radius, 0, 0)).project(this.camera);
+      const r = Math.max(0.08, Math.abs(edge.x - c.x));
       const hit = Math.hypot(x - c.x, (y - c.y) * 0.75) < r;
       this.iglooHovered = hit;
       this.igloo.setOpen(hit ? 1 : 0);
@@ -340,13 +365,19 @@ export class GlacierWorld {
       this.camera.lookAt(x * 0.4, y - 0.6, 0);
       const fog = this.scene.fog as THREE.FogExp2;
       fog.color.copy(a.fog).lerp(b.fog, t);
+      fog.density = THREE.MathUtils.lerp(a.density, b.density, t);
       (this.scene.background as THREE.Color).copy(fog.color);
+      // custom shaders read the shared atmosphere, keeping every hand-written
+      // material in the same weather as three's own fogged materials
+      fogUniforms.uFogColor.value.copy(fog.color);
+      fogUniforms.uFogDensity.value = fog.density;
     }
 
     const camY = this.camera.position.y;
     if (camY > -14) {
       this.igloo.tick(this.time, this.assembly, dt);
       this.berg.tick(this.time, this.assembly);
+      this.mist.tick(this.time, this.assembly);
     }
 
     const layout = this.layout;

@@ -46,8 +46,10 @@ export class PostPass {
         void main() {
           vec2 centered = vUv - 0.5;
           float dist = length(centered);
-          // radial chromatic aberration, stronger at the edges
-          vec2 dir = centered * uAberration * (1.0 + dist * 3.0) * 100.0;
+          // Radial chromatic aberration, stronger at the edges. uAberration is
+          // already a UV offset — scaling it up splits bright objects into
+          // separate red/green/blue copies instead of fringing their edges.
+          vec2 dir = centered * uAberration * (1.0 + dist * 3.0);
           float r = texture2D(tScene, vUv + dir).r;
           float g = texture2D(tScene, vUv).g;
           float b = texture2D(tScene, vUv - dir).b;
@@ -75,8 +77,9 @@ export class PostPass {
   /* aberration boost (0..1) is driven by scroll velocity for a frost-drift feel */
   render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, t: number, boost: number): void {
     this.material.uniforms.uTime.value = t;
-    this.material.uniforms.uAberration.value = 0.0011 + boost * 0.004;
-    this.material.uniforms.uGrain.value = 0.045 + boost * 0.05;
+    // ~0.5% of the frame at rest, up to ~2% at speed: visible as a cold fringe
+    this.material.uniforms.uAberration.value = 0.005 + boost * 0.014;
+    this.material.uniforms.uGrain.value = 0.03 + boost * 0.035;
     renderer.setRenderTarget(this.target);
     renderer.render(scene, camera);
     renderer.setRenderTarget(null);

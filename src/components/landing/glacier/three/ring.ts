@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { rand } from "./crystals";
+import { fogUniforms, FOG_VERT_DECL, FOG_VERT_BODY, FOG_FRAG_DECL, FOG_FRAG_APPLY } from "./fog";
 
 /* Mission-section centrepiece: three concentric bands of carved ice arcs,
    scattered while far away, fusing into one perfect circle as the camera
@@ -12,14 +13,17 @@ function makeArcMaterial(): THREE.ShaderMaterial {
       uDeep: { value: new THREE.Color("#6f93ab") },
       uGlow: { value: new THREE.Color("#8fe6d2") },
       uCharge: { value: 0 },
+      ...fogUniforms,
     },
     vertexShader: /* glsl */ `
       varying vec3 vNormal;
       varying vec3 vView;
+      ${FOG_VERT_DECL}
       void main() {
         vNormal = normalize(normalMatrix * normal);
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         vView = normalize(-mv.xyz);
+        ${FOG_VERT_BODY}
         gl_Position = projectionMatrix * mv;
       }
     `,
@@ -30,6 +34,7 @@ function makeArcMaterial(): THREE.ShaderMaterial {
       uniform float uCharge;
       varying vec3 vNormal;
       varying vec3 vView;
+      ${FOG_FRAG_DECL}
       void main() {
         vec3 n = normalize(vNormal);
         float sun = max(dot(n, normalize(vec3(0.35, 0.75, 0.55))), 0.0);
@@ -37,6 +42,7 @@ function makeArcMaterial(): THREE.ShaderMaterial {
         vec3 col = mix(uDeep, uBase, sun);
         // the halo charges up as the circle completes
         col += uGlow * (fres * (0.15 + uCharge * 0.85) + uCharge * 0.12);
+        ${FOG_FRAG_APPLY}
         gl_FragColor = vec4(col, 1.0);
       }
     `,
