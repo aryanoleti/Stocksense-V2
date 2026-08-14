@@ -1,16 +1,23 @@
 import * as THREE from "three";
 import { rand } from "./crystals";
-import { fogUniforms, FOG_VERT_DECL, FOG_VERT_BODY, FOG_FRAG_DECL, FOG_FRAG_APPLY } from "./fog";
+import {
+  fogUniforms,
+  FOG_VERT_DECL,
+  FOG_VERT_BODY,
+  FOG_FRAG_DECL,
+  FOG_FRAG_APPLY,
+} from "./fog";
 
-/* Mission-section centrepiece: three concentric bands of carved ice arcs,
-   scattered while far away, fusing into one perfect circle as the camera
-   closes in. Assembly is driven by scroll proximity, not time. */
+/* Mission section: three ring gates stacked down the descent. Each one is
+   scattered ice arcs while it is far below; as the camera drops toward it the
+   pieces swing into a complete circle, and the visitor falls straight through
+   the middle. Assembly is driven by camera proximity, never by time. */
 
 function makeArcMaterial(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
-      uBase: { value: new THREE.Color("#c9dde9") },
-      uDeep: { value: new THREE.Color("#6f93ab") },
+      uBase: { value: new THREE.Color("#dceaf3") },
+      uDeep: { value: new THREE.Color("#7fa3ba") },
       uGlow: { value: new THREE.Color("#8fe6d2") },
       uCharge: { value: 0 },
       ...fogUniforms,
@@ -40,7 +47,7 @@ function makeArcMaterial(): THREE.ShaderMaterial {
         float sun = max(dot(n, normalize(vec3(0.35, 0.75, 0.55))), 0.0);
         float fres = pow(1.0 - abs(dot(n, normalize(vView))), 2.2);
         vec3 col = mix(uDeep, uBase, sun);
-        // the halo charges up as the circle completes
+        // the rim charges up as the circle completes
         col += uGlow * (fres * (0.15 + uCharge * 0.85) + uCharge * 0.12);
         ${FOG_FRAG_APPLY}
         gl_FragColor = vec4(col, 1.0);
@@ -57,74 +64,73 @@ type Fragment = {
   scatterRot: THREE.Vector3;
 };
 
-export function makeRingScene(quality: "high" | "low"): {
+type Gate = {
   group: THREE.Group;
-  tick: (t: number, assembly: number, pointerX: number, pointerY: number) => void;
-} {
+  localY: number;
+  fragments: Fragment[];
+  halo: THREE.Mesh;
+  mat: THREE.ShaderMaterial;
+};
+
+/* Vertical spacing of the gates below the section anchor. */
+export const GATE_YS = [2, -4, -10];
+
+function buildGate(index: number, quality: "high" | "low"): Gate {
   const group = new THREE.Group();
+  // lay the ring flat so its axis is vertical — the camera descends through it
+  group.rotation.x = -Math.PI / 2;
   const mat = makeArcMaterial();
   const fragments: Fragment[] = [];
+  const scale = 1 - index * 0.12; // inner gates are slightly tighter
 
-  const addArc = (
-    radius: number,
-    tube: number,
-    startA: number,
-    lengthA: number,
-    depth: number
-  ) => {
-    // an arc "brick": torus slice, squared off by scaling in z
-    const geo = new THREE.TorusGeometry(radius, tube, 8, 20, lengthA).toNonIndexed();
+  const addArc = (radius: number, tube: number, startA: number, lengthA: number, depth: number) => {
+    const geo = new THREE.TorusGeometry(radius * scale, tube, 8, 22, lengthA).toNonIndexed();
     geo.scale(1, 1, depth / tube);
     geo.computeVertexNormals();
     const mesh = new THREE.Mesh(geo, mat);
-    const homeRotZ = startA;
     const dir = startA + lengthA / 2;
     fragments.push({
       mesh,
       homePos: new THREE.Vector3(0, 0, 0),
-      homeRotZ,
-      // scattered: pushed out along its own angle, kicked in z, twisted
+      homeRotZ: startA,
+      // scattered: flung outward along its own angle and twisted out of plane
       scatterPos: new THREE.Vector3(
-        Math.cos(dir) * (1.2 + rand() * 2.2),
-        Math.sin(dir) * (1.2 + rand() * 2.2),
-        (rand() - 0.5) * 5
+        Math.cos(dir) * (1.6 + rand() * 3.0),
+        Math.sin(dir) * (1.6 + rand() * 3.0),
+        (rand() - 0.5) * 6
       ),
-      scatterRot: new THREE.Vector3((rand() - 0.5) * 1.6, (rand() - 0.5) * 1.6, (rand() - 0.5) * 2.4),
+      scatterRot: new THREE.Vector3((rand() - 0.5) * 1.8, (rand() - 0.5) * 1.8, (rand() - 0.5) * 2.6),
     });
     group.add(mesh);
   };
 
-  // outer band: 7 big segments with mortar gaps
+  // outer band — the ring the visitor actually passes through
   for (let i = 0; i < 7; i++) {
-    addArc(2.6, 0.34, (i / 7) * Math.PI * 2, (Math.PI * 2) / 7 - 0.09, 0.42);
+    addArc(3.4, 0.32, (i / 7) * Math.PI * 2, (Math.PI * 2) / 7 - 0.1, 0.4);
   }
-  // middle band: 5 slimmer arcs
+  // inner band, offset so the two never line up
   for (let i = 0; i < 5; i++) {
-    addArc(1.65, 0.2, (i / 5) * Math.PI * 2 + 0.4, (Math.PI * 2) / 5 - 0.35, 0.26);
+    addArc(2.5, 0.18, (i / 5) * Math.PI * 2 + 0.4, (Math.PI * 2) / 5 - 0.3, 0.24);
   }
-  // inner band: 3 arcs + drifting keystones
-  for (let i = 0; i < 3; i++) {
-    addArc(0.95, 0.16, (i / 3) * Math.PI * 2 + 1.1, (Math.PI * 2) / 3 - 0.75, 0.2);
-  }
-  const keys = quality === "high" ? 4 : 2;
+  const keys = quality === "high" ? 5 : 3;
   for (let i = 0; i < keys; i++) {
-    const geo = new THREE.BoxGeometry(0.22, 0.22, 0.22).toNonIndexed();
+    const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2).toNonIndexed();
     geo.computeVertexNormals();
     const mesh = new THREE.Mesh(geo, mat);
     const a = (i / keys) * Math.PI * 2 + 0.6;
+    const r = 2.0 * scale;
     fragments.push({
       mesh,
-      homePos: new THREE.Vector3(Math.cos(a) * 1.3, Math.sin(a) * 1.3, 0),
+      homePos: new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r, 0),
       homeRotZ: a,
-      scatterPos: new THREE.Vector3(Math.cos(a) * 3.4, Math.sin(a) * 3.4, (rand() - 0.5) * 4),
+      scatterPos: new THREE.Vector3(Math.cos(a) * 4.4, Math.sin(a) * 4.4, (rand() - 0.5) * 5),
       scatterRot: new THREE.Vector3(rand() * 2, rand() * 2, rand() * 2),
     });
     group.add(mesh);
   }
 
-  // halo: an additive ring of light behind the stonework
   const halo = new THREE.Mesh(
-    new THREE.TorusGeometry(2.15, 0.5, 8, 64),
+    new THREE.TorusGeometry(3.0 * scale, 0.5, 8, 64),
     new THREE.MeshBasicMaterial({
       color: new THREE.Color("#bdeee2"),
       transparent: true,
@@ -133,30 +139,50 @@ export function makeRingScene(quality: "high" | "low"): {
       depthWrite: false,
     })
   );
-  halo.position.z = -0.35;
   group.add(halo);
+
+  group.position.y = GATE_YS[index];
+  return { group, localY: GATE_YS[index], fragments, halo, mat };
+}
+
+export function makeRingScene(quality: "high" | "low"): {
+  group: THREE.Group;
+  /* camLocalY = camera height relative to the section anchor */
+  tick: (t: number, camLocalY: number, pointerX: number, pointerY: number) => void;
+} {
+  const group = new THREE.Group();
+  const gates = GATE_YS.map((_, i) => {
+    const gate = buildGate(i, quality);
+    group.add(gate.group);
+    return gate;
+  });
 
   return {
     group,
-    tick(t, assembly, pointerX, pointerY) {
-      // smoothstep so the final click into place feels decisive
-      const a = assembly * assembly * (3 - 2 * assembly);
-      mat.uniforms.uCharge.value = a;
-      (halo.material as THREE.MeshBasicMaterial).opacity = a * 0.5 + Math.sin(t * 1.7) * 0.04 * a;
-      group.rotation.z = t * 0.04;
-      // the whole assembly leans toward the pointer
-      group.rotation.x = pointerY * -0.18;
-      group.rotation.y = pointerX * 0.22;
-      fragments.forEach((f, i) => {
-        f.mesh.position.lerpVectors(f.scatterPos, f.homePos, a);
-        f.mesh.rotation.set(
-          f.scatterRot.x * (1 - a),
-          f.scatterRot.y * (1 - a),
-          f.homeRotZ + f.scatterRot.z * (1 - a)
-        );
-        // once whole, the circle breathes as one body
-        const s = 1 + a * Math.sin(t * 0.9 + i * 0.3) * 0.008;
-        f.mesh.scale.setScalar(s);
+    tick(t, camLocalY, pointerX, pointerY) {
+      gates.forEach((gate, gi) => {
+        // distance from the camera down to this gate drives its assembly:
+        // whole by the time the visitor arrives, so they fall through a
+        // complete circle rather than a cloud of pieces
+        const dist = camLocalY - gate.localY;
+        const a = THREE.MathUtils.clamp(1 - (dist - 1.0) / 11, 0, 1);
+        const eased = a * a * (3 - 2 * a);
+        gate.mat.uniforms.uCharge.value = eased;
+        (gate.halo.material as THREE.MeshBasicMaterial).opacity =
+          eased * 0.45 + Math.sin(t * 1.7 + gi) * 0.03 * eased;
+        // slow counter-rotation gives each gate its own character
+        gate.group.rotation.z = t * (0.05 + gi * 0.03) * (gi % 2 ? -1 : 1);
+        gate.group.rotation.x = -Math.PI / 2 + pointerY * 0.05;
+        gate.group.rotation.y = pointerX * 0.06;
+        gate.fragments.forEach((f, i) => {
+          f.mesh.position.lerpVectors(f.scatterPos, f.homePos, eased);
+          f.mesh.rotation.set(
+            f.scatterRot.x * (1 - eased),
+            f.scatterRot.y * (1 - eased),
+            f.homeRotZ + f.scatterRot.z * (1 - eased)
+          );
+          f.mesh.scale.setScalar(1 + eased * Math.sin(t * 0.9 + i * 0.3) * 0.008);
+        });
       });
     },
   };

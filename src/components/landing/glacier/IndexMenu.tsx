@@ -68,15 +68,15 @@ export function IndexMenu({
       role="dialog"
       aria-modal="true"
       aria-label="Site index"
-      className="gl-menu fixed inset-0 z-[70] flex flex-col bg-[#04101c]/95 backdrop-blur-xl"
+      className="gl-menu fixed inset-0 z-[70] flex flex-col bg-[#123a52]/95 backdrop-blur-xl"
     >
       <div className="flex items-center justify-between px-6 py-5 sm:px-10">
-        <p className="font-mono text-[11px] uppercase tracking-[0.5em] text-[#7fb2cc]">Index</p>
+        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.5em] text-[#d7f2ff]">Index</p>
         <button
           type="button"
           onClick={onClose}
           data-cursor="CLOSE"
-          className="gl-focus font-mono text-[11px] uppercase tracking-[0.35em] text-[#eaf6ff] hover:text-[#6fd4a8]"
+          className="gl-focus font-mono text-[11px] font-bold uppercase tracking-[0.35em] text-white hover:text-[#8fecc4]"
         >
           Close ✕
         </button>
@@ -95,32 +95,32 @@ export function IndexMenu({
             className="gl-focus gl-menu-item group flex items-baseline gap-5 py-2 text-left"
             style={{ animationDelay: `${i * 70}ms` }}
           >
-            <span className="font-mono text-[11px] tabular-nums text-[#41647c]">
+            <span className="font-mono text-[11px] font-bold tabular-nums text-[#a8cfe4]">
               0{i}
             </span>
-            <span className="text-4xl font-light uppercase tracking-[0.08em] text-[#eaf6ff] transition-colors group-hover:text-[#6fd4a8] sm:text-6xl">
+            <span className="text-4xl font-extrabold uppercase tracking-[-0.01em] text-white transition-colors group-hover:text-[#8fecc4] sm:text-6xl">
               {LABELS[s.id]}
             </span>
           </button>
         ))}
       </nav>
 
-      <div className="flex flex-col gap-4 border-t border-[#123249] px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-10">
-        <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-[#41647c]">
+      <div className="flex flex-col gap-4 border-t border-white/15 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-10">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a8cfe4]">
           {BRAND.tagline}
         </p>
         <div className="flex gap-6">
           <Link
             href="/dashboard/"
             data-cursor="OPEN"
-            className="gl-focus font-mono text-[11px] uppercase tracking-[0.3em] text-[#6fd4a8] hover:text-[#a8ffe0]"
+            className="gl-focus font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[#8fecc4] hover:text-[#a8ffe0]"
           >
             {BRAND.enterCta} →
           </Link>
           <Link
             href="/dashboard/"
             data-cursor="OPEN"
-            className="gl-focus font-mono text-[11px] uppercase tracking-[0.3em] text-[#7fb2cc] hover:text-[#eaf6ff]"
+            className="gl-focus font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[#d7f2ff] hover:text-white"
           >
             {BRAND.signIn}
           </Link>

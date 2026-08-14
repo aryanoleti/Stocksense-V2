@@ -3,7 +3,7 @@ import { resetRand } from "./crystals";
 import { makeModuleObject, type ModuleObject } from "./modules";
 import { makeIceberg } from "./iceberg";
 import { makeIglooScene } from "./igloo";
-import { makeRingScene } from "./ring";
+import { makeRingScene, GATE_YS } from "./ring";
 import { makeMist, makeForegroundRidges } from "./mist";
 import { fogUniforms } from "./fog";
 import { ParticleField } from "./particles";
@@ -26,15 +26,15 @@ export type Layout = {
 
 type Waypoint = { p: number; y: number; x: number; fog: THREE.Color; density: number };
 
-const FOG_SURFACE = new THREE.Color("#dcedf6");
-const FOG_MID = new THREE.Color("#5c93b0");
-const FOG_DEEP = new THREE.Color("#0d3049");
-const FOG_ABYSS = new THREE.Color("#040f1a");
+const FOG_SURFACE = new THREE.Color("#e9f4fb");
+const FOG_MID = new THREE.Color("#8fbdd4");
+const FOG_DEEP = new THREE.Color("#37698a");
+const FOG_ABYSS = new THREE.Color("#17384f");
 
 /* World Y anchors: the journey descends. */
 const STAGE_Y = (i: number) => -11 - i * 9;
-const ABOUT_Y = -50;
-const CONTACT_Y = -60;
+const ABOUT_Y = -50;   /* anchor; the gates hang below it */
+const CONTACT_Y = -74;
 
 export class GlacierWorld {
   private renderer: THREE.WebGLRenderer;
@@ -211,8 +211,24 @@ export class GlacierWorld {
         density: 0.05,
       });
     });
-    const aboutMid = (layout.about[0] + layout.about[1]) / 2;
-    wp.push({ p: aboutMid, y: ABOUT_Y, x: 0, fog: FOG_DEEP.clone(), density: 0.045 });
+    /* The mission section is a descent THROUGH the gates: the camera enters
+       above the first ring and leaves below the last, so scrolling carries
+       the visitor through each circle instead of past it. */
+    const [aboutStart, aboutEnd] = layout.about;
+    wp.push({
+      p: aboutStart,
+      y: ABOUT_Y + GATE_YS[0] + 7,
+      x: 0,
+      fog: FOG_DEEP.clone(),
+      density: 0.05,
+    });
+    wp.push({
+      p: aboutEnd,
+      y: ABOUT_Y + GATE_YS[GATE_YS.length - 1] - 4,
+      x: 0,
+      fog: FOG_DEEP.clone().lerp(FOG_ABYSS, 0.5),
+      density: 0.045,
+    });
     wp.push({ p: 1, y: CONTACT_Y + 1.5, x: 0, fog: FOG_ABYSS.clone(), density: 0.05 });
     this.waypoints = wp.sort((a, b) => a.p - b.p);
   }
@@ -396,11 +412,9 @@ export class GlacierWorld {
       this.projectCallouts(i, near && this.opens[i] > 0.05);
     });
 
-    if (Math.abs(ABOUT_Y - camY) < 18) {
-      // the ring assembles by PROXIMITY: whole when the camera arrives
-      const dist = Math.abs(ABOUT_Y - camY);
-      const near = THREE.MathUtils.clamp(1 - (dist - 1.5) / 9, 0, 1);
-      this.ring.tick(this.time, near, this.smoothPointer.x, this.smoothPointer.y);
+    // gates span a tall stretch, so keep them live across the whole descent
+    if (camY < ABOUT_Y + 20 && camY > ABOUT_Y - 26) {
+      this.ring.tick(this.time, camY - ABOUT_Y, this.smoothPointer.x, this.smoothPointer.y);
     }
     if (Math.abs(CONTACT_Y - camY) < 18) this.particles.tick(this.time, dt);
   }

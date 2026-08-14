@@ -18,7 +18,7 @@ import { Contact } from "./sections/Contact";
 /* Root of the glacier landing: owns the WebGL world, scroll → scene mapping,
    the INDEX menu, HUD, audio and the no-WebGL fallback. All page content is
    plain DOM on top of one persistent canvas. */
-export function GlacierLanding() {
+export function GlacierLanding({ instrumentCount }: { instrumentCount: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const worldRef = useRef<GlacierWorld | null>(null);
   const audioRef = useRef<LandingAudio | null>(null);
@@ -325,14 +325,14 @@ export function GlacierLanding() {
       <header className="fixed inset-x-0 top-0 z-50">
         <div
           className={`flex items-center justify-between px-6 py-5 transition-colors duration-700 sm:px-10 ${
-            onHeroSection ? "text-[#0b2233]" : "text-[#eaf6ff]"
+            onHeroSection ? "text-[#08202f]" : "text-white"
           }`}
         >
           <button
             type="button"
             data-cursor="TOP"
             onClick={() => scrollToSection("hero")}
-            className="gl-focus font-mono text-[13px] font-semibold uppercase tracking-[0.35em]"
+            className="gl-focus font-mono text-[13px] font-extrabold uppercase tracking-[0.35em]"
             aria-label="StockSense — back to top"
           >
             {BRAND.mark}
@@ -344,7 +344,7 @@ export function GlacierLanding() {
             onClick={() => setMenuOpen(true)}
             aria-haspopup="dialog"
             aria-expanded={menuOpen}
-            className="gl-focus flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.4em]"
+            className="gl-focus flex items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-[0.4em]"
           >
             <span aria-hidden="true" className="inline-block h-px w-6 bg-current" />
             Index
@@ -358,8 +358,8 @@ export function GlacierLanding() {
         aria-hidden="true"
       >
         <p
-          className={`font-mono text-[9px] uppercase tracking-[0.4em] transition-colors duration-700 [writing-mode:vertical-rl] ${
-            onHeroSection ? "text-[#2c5872]" : "text-[#5c93b0]"
+          className={`font-mono text-[9px] font-bold uppercase tracking-[0.4em] transition-colors duration-700 [writing-mode:vertical-rl] ${
+            onHeroSection ? "text-[#1d4460]" : "text-[#cfe7f5]"
           }`}
         >
           {SECTIONS[activeSection].hud}
@@ -381,7 +381,7 @@ export function GlacierLanding() {
             worldRef.current?.snapIntro();
             setIntroDone(true);
           }}
-          className="gl-focus fixed bottom-8 right-8 z-50 border border-[#0b2233]/30 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.3em] text-[#0b2233] hover:bg-[#0b2233]/10"
+          className="gl-focus fixed bottom-8 right-8 z-50 border-2 border-[#08202f]/40 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#08202f] hover:bg-[#08202f]/10"
         >
           Skip intro
         </button>
@@ -395,10 +395,10 @@ export function GlacierLanding() {
           data-cursor={audioOn ? "MUTE" : "SOUND"}
           aria-pressed={audioOn}
           aria-label={audioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
-          className={`gl-focus fixed bottom-6 right-6 z-50 flex h-10 items-center gap-2 border px-4 font-mono text-[9px] uppercase tracking-[0.3em] transition-colors duration-700 ${
+          className={`gl-focus fixed bottom-6 right-6 z-50 flex h-10 items-center gap-2 border px-4 font-mono text-[9px] font-bold uppercase tracking-[0.3em] transition-colors duration-700 ${
             onHeroSection
-              ? "border-[#0b2233]/30 text-[#0b2233] hover:bg-[#0b2233]/5"
-              : "border-[#5c93b0]/40 text-[#9fc9de] hover:bg-[#eaf6ff]/5"
+              ? "border-[#08202f]/40 text-[#08202f] hover:bg-[#08202f]/5"
+              : "border-[#cfe7f5]/50 text-[#e3f3fb] hover:bg-white/10"
           }`}
         >
           <span
@@ -412,7 +412,7 @@ export function GlacierLanding() {
       {/* content rides above the canvas (which now sits at z-0) */}
       <main className="relative z-10">
         <div ref={heroRef}>
-          <Hero />
+          <Hero instrumentCount={instrumentCount} />
         </div>
         <div ref={platformRef}>
           <Platform
@@ -446,7 +446,7 @@ export function GlacierLanding() {
           looping ? "opacity-100" : "opacity-0"
         }`}
       >
-        <p className="absolute inset-x-0 top-1/2 text-center font-mono text-[10px] uppercase tracking-[0.5em] text-[#9fc9de]">
+        <p className="absolute inset-x-0 top-1/2 text-center font-mono text-[10px] font-bold uppercase tracking-[0.5em] text-[#e3f3fb]">
           Returning to the surface
         </p>
       </div>

@@ -514,7 +514,7 @@ button, a, [role="button"], input, select, textarea {
 .gl-root {
   /* opaque ground so the app theme's body background never shows through */
   isolation: isolate;
-  background: #04101c; /* under-scroll and no-WebGL ground colour */
+  background: #17384f; /* under-scroll and no-WebGL ground colour */
   scrollbar-gutter: stable;
 }
 
@@ -533,7 +533,7 @@ button, a, [role="button"], input, select, textarea {
   left: 1rem;
   z-index: 100;
   padding: 0.6rem 1rem;
-  background: #04101c;
+  background: #17384f;
   color: #eaf6ff;
   font-size: 12px;
   letter-spacing: 0.2em;
@@ -617,4 +617,31 @@ button, a, [role="button"], input, select, textarea {
 
 @media (prefers-reduced-motion: reduce) {
   .gl-loop-veil { backdrop-filter: none; }
+}
+
+/* Text scrims. The scene is deliberately bright, so text panels carry their
+   own soft gradient of depth behind them — this keeps white type readable
+   over pale ice without darkening the world itself. */
+/* isolate so the negative-z layer can never escape to an ancestor context */
+.gl-scrim-left,
+.gl-scrim-right,
+.gl-scrim-center { isolation: isolate; }
+
+.gl-scrim-left::before,
+.gl-scrim-right::before,
+.gl-scrim-center::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.gl-scrim-left::before {
+  background: linear-gradient(90deg, rgba(6, 26, 41, 0.88) 0%, rgba(6, 26, 41, 0.6) 38%, rgba(6, 26, 41, 0) 68%);
+}
+.gl-scrim-right::before {
+  background: linear-gradient(270deg, rgba(6, 26, 41, 0.88) 0%, rgba(6, 26, 41, 0.6) 38%, rgba(6, 26, 41, 0) 68%);
+}
+.gl-scrim-center::before {
+  background: radial-gradient(80% 55% at 50% 45%, rgba(6, 26, 41, 0.82) 0%, rgba(6, 26, 41, 0.55) 45%, rgba(6, 26, 41, 0) 80%);
 }

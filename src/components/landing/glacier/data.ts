@@ -1,5 +1,9 @@
 /* Content for the glacier landing. Everything user-visible lives here so
-   copy and modules can be swapped without touching the components. */
+   copy and modules can be swapped without touching the components.
+
+   Every claim below is checked against the app itself. The instrument count
+   is not written here at all — it is counted from the real universe at build
+   time and passed in, so it can never drift out of date. */
 
 /* A labelled point on a shard, revealed when the visitor opens it. `at` is
    an offset from the shard's centre in world units; the renderer projects
@@ -13,7 +17,6 @@ export type Callout = {
 export type Project = {
   title: string;
   category: string;
-  year: string;
   description: string;
   accent: string;
   visualType: "orbital" | "twin" | "neural" | "strata";
@@ -27,61 +30,57 @@ export const MODULES: Project[] = [
   {
     title: "QUANT ENGINE",
     category: "ANALYTICS",
-    year: "2026",
     description:
-      "A six-tab technical workbench — momentum, volatility, levels and forecasts computed from live NSE candles, with every step of the arithmetic shown.",
+      "Six tabs of technical analysis — momentum, volatility, levels and a forecast — computed from NSE candles, with a tab that shows the arithmetic behind every number.",
     accent: "#6fd4a8",
     visualType: "orbital",
     href: "/quant/",
     callouts: [
-      { code: "MODULE_01", label: "SIX ANALYSIS TABS", at: [-2.1, 1.5, 0.6] },
-      { code: "SIGNALS", label: "RSI · MACD · ATR · S/R", at: [2.3, 0.1, 0.4] },
-      { code: "METHOD", label: "ARITHMETIC SHOWN IN FULL", at: [1.4, -1.9, 0.5] },
+      { code: "TABS", label: "SIX ANALYSIS VIEWS", at: [-2.1, 1.5, 0.6] },
+      { code: "SIGNALS", label: "RSI · MACD · VOLATILITY · LEVELS", at: [2.3, 0.1, 0.4] },
+      { code: "METHOD", label: "SHOWS ITS WORKING", at: [1.4, -1.9, 0.5] },
     ],
   },
   {
     title: "COMPARE DESK",
     category: "RESEARCH",
-    year: "2026",
     description:
-      "Two instruments head-to-head: performance rebased to 100, a six-factor fundamental scorecard, and an AI verdict on the pair.",
+      "Two Nifty 50 stocks side by side: both rebased to 100 so returns are comparable, plus a rules-based scorecard across six fundamental factors.",
     accent: "#8fd8ea",
     visualType: "twin",
     href: "/compare/",
     callouts: [
-      { code: "MODULE_02", label: "TWO INSTRUMENTS, ONE AXIS", at: [-2.2, 1.4, 0.5] },
-      { code: "NORMALISED", label: "PERFORMANCE REBASED TO 100", at: [2.2, 0.3, 0.5] },
+      { code: "PAIR", label: "TWO NIFTY 50 STOCKS", at: [-2.2, 1.4, 0.5] },
+      { code: "NORMALISED", label: "BOTH REBASED TO 100", at: [2.2, 0.3, 0.5] },
       { code: "SCORECARD", label: "SIX FUNDAMENTAL FACTORS", at: [1.2, -1.9, 0.4] },
     ],
   },
   {
     title: "ASK AI",
-    category: "INTELLIGENCE",
-    year: "2026",
+    category: "ASSISTANT",
     description:
-      "A market-aware analyst that answers in plain language, reads pasted chart screenshots, and keeps every conversation on file.",
+      "A chat desk built on Gemini that answers market questions in plain language, reads chart screenshots you paste in, and keeps your past conversations.",
     accent: "#b9a8f2",
     visualType: "neural",
     href: "/ask-ai/",
     callouts: [
-      { code: "MODULE_03", label: "MARKET-AWARE ANALYST", at: [-2.2, 1.3, 0.5] },
+      { code: "MODEL", label: "RUNS ON GEMINI", at: [-2.2, 1.3, 0.5] },
       { code: "VISION", label: "READS PASTED CHARTS", at: [2.2, 0.0, 0.5] },
-      { code: "MEMORY", label: "CONVERSATIONS KEPT ON FILE", at: [1.3, -1.9, 0.4] },
+      { code: "HISTORY", label: "CHATS SAVED PER ACCOUNT", at: [1.3, -1.9, 0.4] },
     ],
   },
   {
     title: "PORTFOLIO DESK",
-    category: "SIMULATION",
-    year: "2026",
+    category: "TRACKING",
     description:
-      "Track real holdings or run a ₹5,00,000 virtual book — positions, P&L and history, all marked to live prices.",
+      "Track holdings you already own, or trade a ₹5,00,000 virtual book. Either way positions are marked against live prices.",
     accent: "#7fe0c3",
     visualType: "strata",
     href: "/portfolio/",
     callouts: [
-      { code: "MODULE_04", label: "REAL HOLDINGS OR SIMULATOR", at: [-2.2, 1.4, 0.5] },
+      { code: "MODES", label: "HOLDINGS OR SIMULATOR", at: [-2.2, 1.4, 0.5] },
       { code: "BOOK", label: "₹5,00,000 VIRTUAL CAPITAL", at: [2.2, 0.2, 0.5] },
-      { code: "MARKED", label: "P&L AGAINST LIVE PRICES", at: [1.2, -1.9, 0.4] },
+      { code: "MARKED", label: "VALUED AT LIVE PRICES", at: [1.2, -1.9, 0.4] },
     ],
   },
 ];
@@ -89,31 +88,30 @@ export const MODULES: Project[] = [
 export const BRAND = {
   mark: "STOCKSENSE",
   tagline: "AN INDIAN MARKET TERMINAL",
-  headline: ["THE ENTIRE MARKET,", "ALIVE ON ONE SCREEN"],
-  sub: "StockSense renders 2,678 NSE instruments as one continuous environment — live quotes, a transparent quant engine, AI research and a portfolio desk, in a single view.",
+  headline: ["NSE EQUITIES AND ETFS,", "ALIVE ON ONE SCREEN"],
+  /* count is measured from the real instrument universe at build time */
+  sub: (count: string) =>
+    `${count} NSE equities and ETFs, searchable and chartable — with a quant workbench, a comparison desk, an AI assistant and a portfolio tracker built around them.`,
   scrollHint: "SCROLL TO EXPLORE",
   enterCta: "ENTER TERMINAL",
   signIn: "SIGN IN",
 };
 
 export const ABOUT = {
-  statement: "WE TURN RAW MARKET DATA INTO SIGNALS PEOPLE CAN FEEL.",
+  statement: "WE TURN RAW MARKET DATA INTO SOMETHING YOU CAN READ.",
   body:
-    "Strategy, design and engineering run in one loop here. Live exchange data feeds a quant model that shows its working, an AI desk that cites what it sees, and an interface built to make risk legible. Nothing on screen is faked — every figure is computed from the feed.",
-  services: ["DATA", "INTELLIGENCE", "EXPERIENCE"],
+    "StockSense pulls live NSE quotes and candles, runs them through a technical model that shows its own arithmetic, and puts an AI assistant beside the chart. It is a research and learning tool — it does not tell you what to buy.",
+  services: ["DATA", "ANALYSIS", "INTERFACE"],
 };
 
 export const CONTACT = {
   heading: "MAKE THE NEXT MOVE.",
   email: "aryan.oleti@gmail.com",
-  availability: "DATA — NSE · LIVE · REFRESH TO 0.5S",
+  availability: "PRICE REFRESH FROM 0.5S",
   location: "BUILT FOR INDIAN MARKETS",
-  /* shape: which particle formation each link pulls the field into */
+  /* only destinations that actually exist — no placeholder social accounts */
   links: [
     { label: "EMAIL", href: "mailto:aryan.oleti@gmail.com", shape: "ring" },
-    { label: "X", href: "#", shape: "cross" },
-    { label: "INSTAGRAM", href: "#", shape: "diamond" },
-    { label: "LINKEDIN", href: "#", shape: "grid" },
     { label: "GITHUB", href: "https://github.com/aryanoleti/Stocksense-V2", shape: "hex" },
   ] as { label: string; href: string; shape: ParticleShape }[],
 };

@@ -28,10 +28,10 @@ export function Platform({
       <div className="sticky top-0 flex h-dvh flex-col justify-center overflow-hidden">
         {/* HUD: counter + jump dots */}
         <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-6 pt-24 sm:px-10">
-          <p className="font-mono text-[10px] uppercase tracking-[0.45em] text-[#9fc9de]">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.45em] text-[#e3f3fb]">
             Selected modules
           </p>
-          <p className="font-mono text-sm tabular-nums text-[#d9f2ff]" aria-live="polite">
+          <p className="font-mono text-sm font-bold tabular-nums text-white" aria-live="polite">
             {String(Math.min(activeStage + 1, MODULES.length)).padStart(2, "0")}
             <span className="text-[#5c93b0]"> / {String(MODULES.length).padStart(2, "0")}</span>
           </p>
@@ -71,11 +71,11 @@ export function Platform({
               aria-hidden={!active}
               className={`absolute inset-0 flex items-center px-6 transition-all duration-700 sm:px-14 lg:px-24 ${
                 active ? "opacity-100 blur-0" : "pointer-events-none opacity-0 blur-sm"
-              } ${textLeft ? "justify-start" : "justify-end"}`}
+              } ${textLeft ? "justify-start gl-scrim-left" : "justify-end gl-scrim-right"}`}
             >
               <div className={`max-w-md ${textLeft ? "text-left" : "text-right"}`}>
-                <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-[#8fd8ea]">
-                  {m.category} · {m.year}
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.4em] text-[#d7f2ff]">
+                  {m.category}
                 </p>
                 {active ? (
                   <ScrambleText
@@ -83,14 +83,14 @@ export function Platform({
                     text={m.title}
                     as="h3"
                     duration={700}
-                    className="mt-4 text-4xl font-light uppercase tracking-[0.04em] text-[#eaf6ff] sm:text-5xl lg:text-6xl"
+                    className="mt-4 text-4xl font-extrabold uppercase tracking-[-0.01em] text-white sm:text-5xl lg:text-6xl"
                   />
                 ) : (
-                  <h3 className="mt-4 text-4xl font-light uppercase tracking-[0.04em] text-[#eaf6ff] sm:text-5xl lg:text-6xl">
+                  <h3 className="mt-4 text-4xl font-extrabold uppercase tracking-[-0.01em] text-white sm:text-5xl lg:text-6xl">
                     {m.title}
                   </h3>
                 )}
-                <p className="mt-5 text-sm leading-relaxed text-[#b8d9e8] sm:text-[15px]">
+                <p className="mt-5 text-sm font-medium leading-relaxed text-[#e8f5fc] sm:text-[15px]">
                   {m.description}
                 </p>
                 <div
@@ -104,7 +104,7 @@ export function Platform({
                     tabIndex={active ? 0 : -1}
                     aria-pressed={openStage === i}
                     onClick={() => onToggleOpen(i)}
-                    className="gl-focus inline-flex items-center gap-3 border-b border-[#5c93b0]/50 pb-1 font-mono text-[11px] uppercase tracking-[0.3em] text-[#9fc9de] transition-colors hover:border-[#eaf6ff] hover:text-[#eaf6ff]"
+                    className="gl-focus inline-flex items-center gap-3 border-b border-[#5c93b0]/50 pb-1 font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[#e3f3fb] transition-colors hover:border-[#eaf6ff] hover:text-[#eaf6ff]"
                   >
                     <span
                       aria-hidden="true"
@@ -119,7 +119,7 @@ export function Platform({
                     href={m.href}
                     data-cursor="VIEW"
                     tabIndex={active ? 0 : -1}
-                    className="gl-focus inline-flex items-center gap-3 border-b pb-1 font-mono text-[11px] uppercase tracking-[0.3em] transition-colors"
+                    className="gl-focus inline-flex items-center gap-3 border-b pb-1 font-mono text-[11px] font-bold uppercase tracking-[0.3em] transition-colors"
                     style={{ color: m.accent, borderColor: `${m.accent}66` }}
                   >
                     Open module
