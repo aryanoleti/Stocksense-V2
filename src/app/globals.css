@@ -507,141 +507,119 @@ button, a, [role="button"], input, select, textarea {
 .cf-perf-bg { background: linear-gradient(180deg, #7C3AED 0%, #8B5CF6 25%, #ffffff 65%); }
 .dark .cf-perf-bg { background: linear-gradient(180deg, #7C3AED 0%, #8B5CF6 25%, #0A0F1E 65%); }
 
-/* ================= Glacier landing (gl-*) ================= */
-/* The landing commits to one art-directed icy look; it does not follow the
-   app theme toggle. All gl-* styles are scoped under .gl-root. */
 
-.gl-root {
-  /* opaque ground so the app theme's body background never shows through */
+/* ================= Landing sequence (fg-*) ================= */
+/* The landing commits to one art-directed look and does not follow the app
+   theme toggle. Everything here is scoped under .fg-root. */
+
+.fg-root {
+  /* opaque ground so the app theme's body colour never shows through, and an
+     isolated stacking context so no child layer can escape behind it */
   isolation: isolate;
-  background: #17384f; /* under-scroll and no-WebGL ground colour */
-  scrollbar-gutter: stable;
+  background: #d8dde2;
+  min-height: 100vh;
 }
 
-/* Focus visibility on deep backgrounds */
-.gl-root .gl-focus:focus-visible,
-.gl-menu .gl-focus:focus-visible {
-  outline: 2px solid #6fd4a8;
-  outline-offset: 3px;
+.fg-root .fg-focus:focus-visible,
+.fg-detail .fg-focus:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
   border-radius: 2px;
 }
 
-/* Skip link: hidden until keyboard focus */
-.gl-skip {
+/* Skip link — hidden until focused */
+.fg-skip {
   position: fixed;
-  top: -100px;
+  top: -80px;
   left: 1rem;
   z-index: 100;
   padding: 0.6rem 1rem;
-  background: #17384f;
-  color: #eaf6ff;
-  font-size: 12px;
+  background: #0a0a0c;
+  color: #e8ecef;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   transition: top 0.2s ease;
 }
-.gl-skip:focus-visible { top: 1rem; }
+.fg-skip:focus-visible { top: 1rem; }
 
-/* Custom cursor active: hide the native one on landing chrome only */
-.gl-has-cursor .gl-root,
-.gl-has-cursor .gl-root a,
-.gl-has-cursor .gl-root button,
-.gl-has-cursor .gl-menu,
-.gl-has-cursor .gl-menu a,
-.gl-has-cursor .gl-menu button {
-  cursor: none;
-}
-
-/* Scroll hint line: falling shimmer */
-@keyframes gl-fall {
-  0% { transform: scaleY(0); transform-origin: top; }
-  45% { transform: scaleY(1); transform-origin: top; }
-  55% { transform: scaleY(1); transform-origin: bottom; }
-  100% { transform: scaleY(0); transform-origin: bottom; }
-}
-.gl-scroll-line { animation: gl-fall 2.2s ease-in-out infinite; }
-
-@keyframes gl-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-.gl-pulse { animation: gl-pulse 1.6s ease-in-out infinite; }
-
-/* INDEX menu items slide up as the overlay opens */
-@keyframes gl-rise {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.gl-menu-item { animation: gl-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
-
-/* No-WebGL fallback: layered arctic gradients + faint crystal linework */
-.gl-fallback-bg {
-  background:
-    linear-gradient(160deg, rgba(111, 212, 168, 0.08), transparent 40%),
-    radial-gradient(120% 70% at 50% -10%, #dcedf6 0%, #9cc3d8 30%, #35637f 55%, #0d3049 75%, #04101c 100%);
-}
-.gl-fallback-bg::after {
+/* Faint blueprint dot-grid across the whole background, per the carousel spec */
+.fg-root::before {
   content: "";
-  position: absolute;
+  position: fixed;
   inset: 0;
-  background-image:
-    linear-gradient(115deg, transparent 48.8%, rgba(234, 246, 255, 0.12) 49%, transparent 49.4%),
-    linear-gradient(65deg, transparent 58.8%, rgba(168, 233, 242, 0.1) 59%, transparent 59.5%),
-    linear-gradient(150deg, transparent 28.8%, rgba(234, 246, 255, 0.08) 29%, transparent 29.6%);
-}
-/* In fallback mode the hero sits on the gradient's light crown; keep its dark
-   text readable, and give later sections their deep ground. */
-.gl-fallback #platform,
-.gl-fallback #about,
-.gl-fallback #contact {
-  background: transparent;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gl-scroll-line, .gl-pulse, .gl-menu-item { animation: none; }
-  .gl-menu-item { opacity: 1; transform: none; }
-}
-
-/* Callout labels pinned to an open shard */
-.gl-callout {
-  will-change: transform, opacity;
-}
-
-/* Return-to-surface veil: frost closing in, then clearing */
-.gl-loop-veil {
-  background:
-    radial-gradient(120% 80% at 50% 50%, transparent 30%, rgba(10, 32, 48, 0.55) 75%, rgba(4, 16, 28, 0.9) 100%),
-    linear-gradient(115deg, transparent 48.8%, rgba(234, 246, 255, 0.06) 49%, transparent 49.4%);
-  backdrop-filter: blur(2px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gl-loop-veil { backdrop-filter: none; }
-}
-
-/* Text scrims. The scene is deliberately bright, so text panels carry their
-   own soft gradient of depth behind them — this keeps white type readable
-   over pale ice without darkening the world itself. */
-/* isolate so the negative-z layer can never escape to an ancestor context */
-.gl-scrim-left,
-.gl-scrim-right,
-.gl-scrim-center { isolation: isolate; }
-
-.gl-scrim-left::before,
-.gl-scrim-right::before,
-.gl-scrim-center::before {
-  content: "";
-  position: absolute;
-  inset: 0;
+  z-index: 1;
   pointer-events: none;
-  z-index: -1;
+  background-image: radial-gradient(rgba(60, 72, 84, 0.16) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: 0.55;
+  transition: opacity 0.6s ease;
 }
-.gl-scrim-left::before {
-  background: linear-gradient(90deg, rgba(6, 26, 41, 0.88) 0%, rgba(6, 26, 41, 0.6) 38%, rgba(6, 26, 41, 0) 68%);
+
+/* Screen-reader / no-WebGL content. Present in the DOM and reachable by
+   keyboard, visually clipped while the scene is doing the talking. */
+.fg-readable {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
-.gl-scrim-right::before {
-  background: linear-gradient(270deg, rgba(6, 26, 41, 0.88) 0%, rgba(6, 26, 41, 0.6) 38%, rgba(6, 26, 41, 0) 68%);
+.fg-readable:focus-within {
+  position: fixed;
+  inset: auto auto 5rem 1rem;
+  z-index: 90;
+  width: min(38rem, calc(100vw - 2rem));
+  height: auto;
+  clip-path: none;
+  white-space: normal;
+  background: #0a0a0c;
+  color: #e8ecef;
+  padding: 1.25rem 1.5rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.8;
 }
-.gl-scrim-center::before {
-  background: radial-gradient(80% 55% at 50% 45%, rgba(6, 26, 41, 0.82) 0%, rgba(6, 26, 41, 0.55) 45%, rgba(6, 26, 41, 0) 80%);
+
+/* Boot veil while the GL context comes up */
+.fg-boot {
+  background: #d8dde2;
+  animation: fg-boot-out 0.5s ease 0.2s forwards;
+}
+@keyframes fg-boot-out {
+  to { opacity: 0; visibility: hidden; }
+}
+
+/* Detail page: faint faceted echo of the shard that was opened */
+.fg-detail-echo {
+  background:
+    radial-gradient(42% 55% at 72% 48%, rgba(150, 175, 200, 0.09), transparent 70%),
+    linear-gradient(118deg, transparent 47.5%, rgba(190, 210, 230, 0.05) 48%, transparent 53%),
+    linear-gradient(62deg, transparent 58%, rgba(190, 210, 230, 0.04) 58.4%, transparent 63%);
+}
+
+/* No-WebGL fallback: the same cold palette as layered CSS */
+.fg-fallback-bg {
+  background:
+    radial-gradient(120% 80% at 50% 12%, #eef2f5 0%, #cfd6dc 45%, #9aa4ad 100%);
+}
+.fg-fallback .fg-readable {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  white-space: normal;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 8rem 1.5rem;
+  color: #1b1f24;
+  background: transparent;
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fg-boot { animation-duration: 0.01s; }
+  .fg-detail { transition-duration: 0.01s; }
 }
