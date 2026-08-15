@@ -1,14 +1,14 @@
-import { LandingRedirect } from "@/components/landing/LandingRedirect";
-import { ForgeLanding } from "@/components/landing/forge/ForgeLanding";
+import type { Metadata } from "next";
+import { LearnHome } from "@/components/learn/LearnHome";
 
-/* Landing sequence: one persistent R3F canvas carrying three scenes — the
-   fog-lit hero monolith, the portfolio shard carousel, and the portal that
-   dissolves into a particle sculpture on its pedestal. */
-export default function LandingPage() {
-  return (
-    <>
-      <LandingRedirect />
-      <ForgeLanding />
-    </>
-  );
+/* The home screen is the course. Visitors land in Learn before anything else,
+   so the first thing the product offers is an explanation rather than a chart. */
+export const metadata: Metadata = {
+  title: "Learn to read a company — StockSense",
+  description:
+    "A free seven-level course for beginners: shares, company accounts, financial ratios, portfolio building and staying rational in a falling market. Educational only, using invented companies.",
+};
+
+export default function HomePage() {
+  return <LearnHome />;
 }
