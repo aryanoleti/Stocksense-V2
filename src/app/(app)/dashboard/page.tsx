@@ -10,13 +10,17 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { INDICES, NIFTY_50 } from "@/lib/mock-data";
+import { AiDock } from "@/components/ai/AiDock";
 
 const SHORTCUTS = ["RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK", "SBIN", "BHARTIARTL", "TATAMOTORS"];
 const TRENDING = ["ADANIENT", "TATAMOTORS", "SBIN", "ICICIBANK", "RELIANCE", "BHARTIARTL"];
 
+/* The dashboard runs as two columns on wide screens: the market content and
+   a docked assistant, so a question can be asked without leaving the page. */
 export default function DashboardPage() {
   return (
-    <div className="space-y-7">
+    <div className="flex gap-6">
+      <div className="min-w-0 flex-1 space-y-7">
       {/* Greeting / Search hero */}
       <section className="relative overflow-hidden rounded-3xl gradient-brand p-8 sm:p-10">
         <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-(--color-brand-400)/15 blur-3xl" />
@@ -191,6 +195,9 @@ export default function DashboardPage() {
           <RecentGrid limit={6} compact />
         </div>
       </section>
+      </div>
+
+      <AiDock />
     </div>
   );
 }

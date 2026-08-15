@@ -1,4 +1,5 @@
-import type { FeatureHook, Level, Lesson } from "./types";
+import type { Checkpoint, FeatureHook, Level, Lesson } from "./types";
+import { SECOND_QUESTIONS } from "./unitChecks";
 import { LEVEL_1_LESSONS } from "./levels/level1";
 import { LEVEL_2_LESSONS } from "./levels/level2";
 import { LEVEL_3_LESSONS } from "./levels/level3";
@@ -147,3 +148,58 @@ export const FEATURE_HOOKS: FeatureHook[] = [
     ready: false,
   },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Unit checks: the two-question gate at the end of every lesson.
+   Question 1 restates the lesson's main idea; question 2 comes from
+   unitChecks.ts and is deliberately harder, scaling with the level. */
+
+export function unitCheck(lesson: Lesson): Checkpoint[] {
+  const second = SECOND_QUESTIONS[lesson.slug];
+  return second ? [lesson.finalQuiz, second] : [lesson.finalQuiz];
+}
+
+/** Lessons unlock in order: a lesson opens once the one before it is passed. */
+export function isLessonUnlocked(slug: string, passed: string[]): boolean {
+  const i = ALL_LESSONS.findIndex((l) => l.slug === slug);
+  if (i <= 0) return true;
+  return passed.includes(ALL_LESSONS[i - 1].slug);
+}
+
+/** The furthest lesson the reader is allowed to open. */
+export function furthestUnlocked(passed: string[]): Lesson {
+  for (const lesson of ALL_LESSONS) {
+    if (!passed.includes(lesson.slug)) return lesson;
+  }
+  return ALL_LESSONS[ALL_LESSONS.length - 1];
+}
+
+/* Which level a given app feature requires. Gating is by level, not by
+   individual lesson, so a reader unlocks a tool by finishing the block of
+   teaching that explains how to read it. */
+export const FEATURE_REQUIREMENTS: Record<string, { level: number; label: string; why: string }> = {
+  quant: {
+    level: 3,
+    label: "Quant engine",
+    why: "The workbench reports P/E, EPS, ROE, debt-to-equity and margins. Level 3 teaches what each one means and how it can mislead.",
+  },
+  compare: {
+    level: 4,
+    label: "Compare desk",
+    why: "Comparing two companies fairly is exactly what Level 4 covers — including how the choice of metric can decide the winner in advance.",
+  },
+  portfolio: {
+    level: 5,
+    label: "Portfolio desk",
+    why: "Level 5 covers position sizing, spreading risk and rebalancing, which is what the simulator asks you to do.",
+  },
+};
+
+/** True when every lesson in the required level has been passed. */
+export function featureUnlocked(feature: string, passed: string[]): boolean {
+  const req = FEATURE_REQUIREMENTS[feature];
+  if (!req) return true;
+  const level = getLevel(req.level);
+  if (!level) return true;
+  return level.lessons.every((l) => passed.includes(l.slug));
+}

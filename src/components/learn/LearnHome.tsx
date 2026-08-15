@@ -5,6 +5,8 @@ import { useState } from "react";
 import { LEVELS, TOTAL_LESSONS, TOTAL_MINUTES, TOTAL_QUESTIONS, FEATURE_HOOKS, getLesson } from "@/lib/learn/curriculum";
 import { GLOSSARY } from "@/lib/learn/glossary";
 import { useProgress, levelProgress, lessonStatus } from "@/lib/learn/progress";
+import { isLessonUnlocked, furthestUnlocked } from "@/lib/learn/curriculum";
+import { LearnTopBar } from "./LearnTopBar";
 import { ProgressBar, StatTile, StatusBadge, DifficultyTag } from "./LearnPieces";
 
 /* The Learn landing — the first screen of the site. Everything above the
@@ -13,10 +15,12 @@ export function LearnHome() {
   const { progress, hydrated, stats, resetProgress } = useProgress();
   const [confirmReset, setConfirmReset] = useState(false);
 
-  const next = getLesson(stats.nextLesson);
+  const next = hydrated ? furthestUnlocked(progress.completed) : getLesson(stats.nextLesson);
   const started = stats.lessonsCompleted > 0 || stats.questionsAnswered > 0;
 
   return (
+    <>
+    <LearnTopBar />
     <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-10 sm:px-6 sm:pt-14">
       {/* ---------- hero ---------- */}
       <header>
@@ -147,35 +151,63 @@ export function LearnHome() {
                 <ul className="divide-y divide-(--color-border)">
                   {level.lessons.map((lesson) => {
                     const status = hydrated ? lessonStatus(progress, lesson.slug) : "not-started";
+                    // lessons open in order — a locked row is shown, not hidden,
+                    // so the reader can see what is coming and why it is shut
+                    const unlocked = !hydrated || isLessonUnlocked(lesson.slug, progress.completed);
                     const action =
                       status === "completed"
                         ? "Review"
                         : status === "in-progress"
                           ? "Continue"
                           : "Start";
+
+                    const body = (
+                      <>
+                        <span className="w-6 shrink-0 text-xs tabular-nums text-(--color-fg-muted)">
+                          {lesson.order}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span
+                            className={`block text-sm font-medium ${
+                              unlocked ? "text-(--color-fg)" : "text-(--color-fg-muted)"
+                            }`}
+                          >
+                            {lesson.title}
+                          </span>
+                          <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-(--color-fg-muted)">
+                            <span>{lesson.minutes} min</span>
+                            <DifficultyTag difficulty={lesson.difficulty} />
+                          </span>
+                        </span>
+                        {hydrated && unlocked && <StatusBadge status={status} />}
+                        <span
+                          className={`shrink-0 text-sm font-medium ${
+                            unlocked ? "text-(--color-brand-500)" : "text-(--color-fg-muted)"
+                          }`}
+                        >
+                          {unlocked ? `${action} →` : "Locked"}
+                        </span>
+                      </>
+                    );
+
                     return (
                       <li key={lesson.slug}>
-                        <Link
-                          href={`/learn/${lesson.slug}/`}
-                          className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5 transition-colors hover:bg-(--color-surface-2) sm:px-6"
-                        >
-                          <span className="w-6 shrink-0 text-xs tabular-nums text-(--color-fg-subtle)">
-                            {lesson.order}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-medium text-(--color-fg)">
-                              {lesson.title}
-                            </span>
-                            <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-(--color-fg-muted)">
-                              <span>{lesson.minutes} min</span>
-                              <DifficultyTag difficulty={lesson.difficulty} />
-                            </span>
-                          </span>
-                          {hydrated && <StatusBadge status={status} />}
-                          <span className="shrink-0 text-sm font-medium text-(--color-brand-500)">
-                            {action} →
-                          </span>
-                        </Link>
+                        {unlocked ? (
+                          <Link
+                            href={`/learn/${lesson.slug}/`}
+                            className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5 transition-colors hover:bg-(--color-surface-2) sm:px-6"
+                          >
+                            {body}
+                          </Link>
+                        ) : (
+                          <div
+                            aria-disabled="true"
+                            title="Finish the previous lesson to unlock this one"
+                            className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5 opacity-60 sm:px-6"
+                          >
+                            {body}
+                          </div>
+                        )}
                       </li>
                     );
                   })}
@@ -293,5 +325,6 @@ export function LearnHome() {
         </div>
       </section>
     </div>
+    </>
   );
 }

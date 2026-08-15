@@ -11,7 +11,7 @@ import { ALL_LESSONS, TOTAL_LESSONS, lessonQuestionIds, getLesson } from "./curr
    component owning its own copy, so a checkpoint answered in the reader
    updates the level cards behind it immediately. */
 
-const KEY = "stocksense.learn.progress.v1";
+const KEY = "stocksense.learn.progress.v2";
 
 let current: Progress = EMPTY_PROGRESS;
 let loaded = false;
@@ -24,10 +24,13 @@ function read(): Progress {
     if (!raw) return EMPTY_PROGRESS;
     const parsed = JSON.parse(raw) as Progress;
     // a saved file from an older shape is discarded rather than migrated
-    if (parsed?.version !== 1) return EMPTY_PROGRESS;
+    if (parsed?.version !== 2) return EMPTY_PROGRESS;
     return {
-      version: 1,
+      version: 2,
       completed: Array.isArray(parsed.completed) ? parsed.completed : [],
+      gates: parsed.gates && typeof parsed.gates === "object" ? parsed.gates : {},
+      placement: parsed.placement ?? null,
+      placementSeen: parsed.placementSeen === true,
       answers: parsed.answers && typeof parsed.answers === "object" ? parsed.answers : {},
       currentLesson: typeof parsed.currentLesson === "string" ? parsed.currentLesson : null,
       updatedAt: typeof parsed.updatedAt === "number" ? parsed.updatedAt : 0,
@@ -171,15 +174,47 @@ export function useProgress() {
     write({ ...current, currentLesson: slug, updatedAt: Date.now() });
   }, []);
 
-  const completeLesson = useCallback((slug: string) => {
+  /* Record an attempt at a lesson gate. Passing marks the lesson complete
+     and unlocks the next one; failing twice leaves the reader to restart. */
+  const recordGateAttempt = useCallback((slug: string, passed: boolean) => {
     ensureLoaded();
-    if (current.completed.includes(slug)) return;
+    const prev = current.gates[slug] ?? { attempts: 0, passed: false };
+    if (prev.passed) return;
+    const gates = {
+      ...current.gates,
+      [slug]: { attempts: prev.attempts + 1, passed },
+    };
     write({
       ...current,
-      completed: [...current.completed, slug],
+      gates,
+      completed: passed && !current.completed.includes(slug)
+        ? [...current.completed, slug]
+        : current.completed,
       currentLesson: slug,
       updatedAt: Date.now(),
     });
+  }, []);
+
+  /* Restart a lesson after both attempts failed: the gate is cleared so the
+     reader can try again, and the inline checkpoint answers are dropped so
+     the lesson is genuinely re-read rather than skimmed. */
+  const restartLesson = useCallback((slug: string, questionIds: string[]) => {
+    ensureLoaded();
+    const gates = { ...current.gates };
+    delete gates[slug];
+    const answers = { ...current.answers };
+    questionIds.forEach((id) => delete answers[id]);
+    write({ ...current, gates, answers, currentLesson: slug, updatedAt: Date.now() });
+  }, []);
+
+  const savePlacement = useCallback((result: Progress["placement"]) => {
+    ensureLoaded();
+    write({ ...current, placement: result, placementSeen: true, updatedAt: Date.now() });
+  }, []);
+
+  const skipPlacement = useCallback(() => {
+    ensureLoaded();
+    write({ ...current, placementSeen: true, updatedAt: Date.now() });
   }, []);
 
   const resetProgress = useCallback(() => {
@@ -193,7 +228,10 @@ export function useProgress() {
     stats: computeStats(state),
     recordAnswer,
     openLesson,
-    completeLesson,
+    recordGateAttempt,
+    restartLesson,
+    savePlacement,
+    skipPlacement,
     resetProgress,
   };
 }

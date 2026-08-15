@@ -81,11 +81,34 @@ export type StoredAnswer = {
   correct: boolean;
 };
 
+export type PlacementResult = {
+  score: number;
+  total: number;
+  /** levels the result suggests starting from, in order */
+  recommended: number[];
+  /** "start", "skim" or "skip" — the headline suggestion */
+  verdict: "start" | "skim" | "skip";
+  takenAt: number;
+};
+
+/** Per-lesson gate state: how many attempts at the unit check, and whether
+    it was passed. Two attempts are allowed before the lesson restarts. */
+export type GateState = {
+  attempts: number;
+  passed: boolean;
+};
+
 export type Progress = {
   /** bumped when the shape changes so old saves can be discarded safely */
-  version: 1;
-  /** lesson slugs the reader has finished */
+  version: 2;
+  /** lesson slugs whose unit check has been passed */
   completed: string[];
+  /** gate state per lesson slug */
+  gates: Record<string, GateState>;
+  /** null until the placement quiz is taken or skipped */
+  placement: PlacementResult | null;
+  /** true once the reader has been offered the placement quiz */
+  placementSeen: boolean;
   /** checkpoint id → what they picked */
   answers: Record<string, StoredAnswer>;
   /** last lesson opened, used by "Continue" */
@@ -94,8 +117,11 @@ export type Progress = {
 };
 
 export const EMPTY_PROGRESS: Progress = {
-  version: 1,
+  version: 2,
   completed: [],
+  gates: {},
+  placement: null,
+  placementSeen: false,
   answers: {},
   currentLesson: null,
   updatedAt: 0,
