@@ -55,12 +55,17 @@ jobs:
           cache: ${{ steps.detect-package-manager.outputs.manager }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          # Automatically inject basePath in your Next.js configuration file and disable
-          # server side image optimization (https://nextjs.org/docs/api-reference/next/image#unoptimized).
-          #
-          # You may remove this line if you want to manage the configuration yourself.
-          static_site_generator: next
+        # NOTE: `static_site_generator: next` is deliberately NOT set.
+        #
+        # That option makes the action rewrite next.config with its own
+        # generated settings. It injects basePath, but the injected config
+        # drops `trailingSlash: true` — so the export came out flat
+        # (`learn.html`) while every link in the app points at `/learn/`,
+        # and every route except `/` returned 404 on the live site.
+        #
+        # next.config.ts already derives basePath and assetPrefix from
+        # GITHUB_REPOSITORY, so the injection was redundant as well as
+        # harmful. Leave this step with no `with:` block.
       - name: Restore cache
         uses: actions/cache@v4
         with:
